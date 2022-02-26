@@ -3,5 +3,17 @@
   {
     "lat": 54.408010,
     "lon": 18.562690
+  },
+  "tle_update":
+  {
+    "update": true,
+    "update_interval": 40
+  },
+  "console_update":
+  {
+    "map": 70,
+    "flyby": 60,
+    "info": 1,
+    "last": 0.5
   }
 }

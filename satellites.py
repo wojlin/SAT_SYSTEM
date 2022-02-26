@@ -42,7 +42,9 @@ class satellite:
         difference = self.sat - bluffton
         topocentric = difference.at(t_in_UTC)
         alt, az, distance = topocentric.altaz()
-        return {"altitude": alt.degrees, "azimuth": az.degrees, "distance": distance.km}
+        direction = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'][int((int(az.degrees)*9)/360)]
+
+        return {"altitude": alt.degrees, "azimuth": az.degrees, "direction": direction, "distance": distance.km}
 
     def get_passes(self, t_in_UTC, t_out_UTC, degree):
         bluffton = wgs84.latlon(globals.POS["lat"], globals.POS["lon"])
@@ -60,25 +62,32 @@ class satellite:
                          t_out_UTC.second)
         t, events = self.sat.find_events(bluffton, t0, t1, altitude_degrees=0)
 
-        acceptable_events = {"start": t_in_UTC.strftime('%Y-%m-%d %H:%M:%S'),
-                             "end": t_out_UTC.strftime('%Y-%m-%d %H:%M:%S'),
-                             "min_degree": degree,
-                             "entries": {}}
+        list_events = {"settings": {
+            "start_epoch": t_in_UTC.timestamp(),
+            "end_epoch": t_out_UTC.timestamp(),
+            "start_utc": t_in_UTC.strftime('%Y-%m-%d %H:%M:%S'),
+            "end_utc": t_out_UTC.strftime('%Y-%m-%d %H:%M:%S'),
+            "min_degree": degree},
+            "events": {}}
+
         log = {}
         good = False
+        event_dict_name = 'none'
         for ti, event in zip(t, events):
             name = ('rise', 'culminate', 'set')[event]
             info = self.get_perspective_info(ti)
-            log[name] = {**{"time": ti.utc_strftime('%Y-%m-%d %H:%M:%S')}, **info}
+            log[name] = {**{"time": ti.utc_strftime('%Y-%m-%d %H:%M:%S'), "epoch": ti.utc_datetime().timestamp()}, **info}
             if event == 1 and info["altitude"] > degree:
                 good = True
-            if event == 2 and good:
-                acceptable_events["entries"][log["rise"]["time"]] = log
+                event_dict_name = ti.utc_datetime().timestamp()
+            if event == 2 and good and "rise" in log:
+                duration = float(log["set"]["epoch"]) - float(log["rise"]["epoch"])
+                list_events["events"][event_dict_name] = {**{"name": self.name}, **{"duration": duration}, **log}
             if event == 2:
                 log = {}
                 good = False
 
-        return acceptable_events
+        return list_events
 
     def get_perspective_path(self, t_in_UTC, t_out_UTC, resolution):
         path_json = {}
@@ -154,4 +163,4 @@ class satellite:
         return out_json
 
     def __repr__(self):
-        print("")
+        return self.name

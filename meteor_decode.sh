@@ -1,5 +1,6 @@
 #! /usr/bin/bash
-
+while [ $(date +%H:%M) != "17:29" ]; do sleep 1; done
+ 
 
 if [ $# -ne 4 ]
   then

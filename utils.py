@@ -1,5 +1,6 @@
 from datetime import datetime
 from dateutil import tz
+import time
 
 
 def add_col(input_str, space):
@@ -35,13 +36,20 @@ def write_file(_path, text):
         raise Exception(e)
 
 
+def get_utc_offset():
+    offset = -time.timezone
+    mark = ''
+    if offset > 0:
+        mark = '+'
+    return f"{mark}{int(offset/3600)}"
+
+
 def utc_to_lc(utc_time):
     from_zone = tz.tzutc()
     to_zone = tz.tzlocal()
-
     utc = datetime.strptime(utc_time, '%Y-%m-%d %H:%M:%S')
     utc = utc.replace(tzinfo=from_zone)
 
-    central = utc.astimezone(to_zone)
+    central = utc.astimezone(to_zone).strftime('%Y-%m-%d %H:%M:%S')
 
     return central

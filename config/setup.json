@@ -7,7 +7,7 @@
   "tle_update":
   {
     "update": true,
-    "update_interval": 40
+    "update_interval": 3600
   },
   "console_update":
   {
@@ -15,5 +15,18 @@
     "flyby": 60,
     "info": 1,
     "last": 0.5
+  },
+  "flyby_prediction_settings":
+  {
+    "hours_ahead": 15,
+    "minimal_angle": 15,
+    "display_amount": 5
+  },
+  "decode_settings":
+  {
+      "decode": true,
+      "delete_temp_files": false,
+      "decode_temp_path": "temp",
+      "output_dir_path": "output"
   }
 }

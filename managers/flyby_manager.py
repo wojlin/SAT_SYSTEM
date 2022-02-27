@@ -55,19 +55,22 @@ def get_flyby_filtered_list(sats, t_in, t_out, degree):
     return {**template, **{"events": filtered_list}}
 
 
-def draw_list(flyby_json, entries_amount):
+def draw_box(flyby_json, entries_amount):
     top_left = "╔"
     top_right = "╗"
     bottom_right = "╝"
     bottom_left = "╚"
     horizontal = "═"
     vertical = "║"
-
     width = 180
 
     table = ''
 
-    name = "╣ FLYBY INFO ╠"
+    start = float(flyby_json["settings"]['start_epoch'])
+    end = float(flyby_json["settings"]['end_epoch'])
+    min_degree = flyby_json["settings"]['min_degree']
+    hours = int((end - start)/3600)
+    name = f"╣ FLYBY INFO (min {min_degree}° altitude, {hours} hours ahead, showing first {entries_amount}, UTC {utils.get_utc_offset()}) ╠"
     half_len = int(len(name) / 2)
     left_side = int(width / 2) - half_len
     table += str(
@@ -101,21 +104,26 @@ def draw_list(flyby_json, entries_amount):
     for key in flyby_json["events"]:
         entry += 1
         if entry <= entries_amount:
+
+            rise_time = utils.utc_to_lc(flyby_json["events"][key]["rise"]['time'])
+            culminate_time = utils.utc_to_lc(flyby_json["events"][key]["culminate"]['time'])
+            set_time = utils.utc_to_lc(flyby_json["events"][key]["set"]['time'])
+
             text_buffer = utils.add_col(f" {str(entry).zfill(2)}.", spaces[0]) + \
                           utils.add_col(flyby_json["events"][key]["name"], spaces[1]) + \
                           utils.add_col(str(round(float(flyby_json["events"][key]["culminate"]['altitude']), 2)) + "°",
                                   spaces[2]) + \
                           utils.add_col(utils.min_sec(float(flyby_json["events"][key]["duration"])), spaces[3]) + \
                           utils.add_col("|", spaces[4]) + \
-                          utils.add_col(flyby_json["events"][key]["rise"]['time'], spaces[5]) + \
+                          utils.add_col(rise_time, spaces[5]) + \
                           utils.add_col(utils.deg(flyby_json["events"][key]["rise"]['azimuth']), spaces[6]) + \
                           utils.add_col(flyby_json["events"][key]["rise"]['direction'], spaces[7]) + \
                           utils.add_col("|", spaces[8]) + \
-                          utils.add_col(flyby_json["events"][key]["culminate"]['time'], spaces[9]) + \
+                          utils.add_col(culminate_time, spaces[9]) + \
                           utils.add_col(utils.deg(flyby_json["events"][key]["culminate"]['azimuth']), spaces[10]) + \
                           utils.add_col(flyby_json["events"][key]["culminate"]['direction'], spaces[11]) + \
                           utils.add_col("|", spaces[12]) + \
-                          utils.add_col(flyby_json["events"][key]["set"]['time'], spaces[13]) + \
+                          utils.add_col(set_time, spaces[13]) + \
                           utils.add_col(utils.deg(flyby_json["events"][key]["set"]['azimuth']), spaces[14]) + \
                           utils.add_col(flyby_json["events"][key]["set"]['direction'], spaces[15])
 

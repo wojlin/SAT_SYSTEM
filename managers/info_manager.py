@@ -1,7 +1,7 @@
 import utils
 
 
-def draw_info(satellites):
+def draw_box(satellites):
     top_left = "╔"
     top_right = "╗"
     bottom_right = "╝"

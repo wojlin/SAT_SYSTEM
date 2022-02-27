@@ -70,7 +70,7 @@ def draw_point(raw_map, lat_point, lon_point, char, color, **kwargs):
     return raw_map
 
 
-def draw_map(satellites, pathes):
+def draw_box(satellites, pathes):
 
     sats_buffer = satellites
 

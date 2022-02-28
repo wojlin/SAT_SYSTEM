@@ -1,6 +1,14 @@
+from functools import reduce
 from datetime import datetime
 from dateutil import tz
 import time
+import json
+import ast
+
+
+def read_config(path):
+    setup = json.loads(read_file('config/setup.json'))
+    return reduce(dict.get, path, setup)
 
 
 def add_col(input_str, space):
@@ -41,7 +49,7 @@ def get_utc_offset():
     mark = ''
     if offset > 0:
         mark = '+'
-    return f"{mark}{int(offset/3600)}"
+    return f"{mark}{int(offset / 3600)}"
 
 
 def utc_to_lc(utc_time):

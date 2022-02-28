@@ -28,5 +28,28 @@
       "delete_temp_files": false,
       "decode_temp_path": "temp",
       "output_dir_path": "output"
+  },
+  "drawing_settings":
+  {
+    "upper_left_corner": "╔",
+    "upper_right_corner": "╗",
+    "lower_left_corner": "╚",
+    "lower_right_corner": "╝",
+    "vertical_line": "║",
+    "horizontal_line": "═",
+    "left_opener": "╣",
+    "right_opener": "╠",
+    "arrow_up": "⟰",
+    "arrow_down": "⟱",
+    "satellite": "\uD83D\uDEF0",
+    "ground_station": "o",
+    "ground_station_name": "HOME",
+    "ground_station_color": "[1;31;40m",
+    "border_color": "[38;5;38m",
+    "earth_color": "[1;32;40m",
+    "text_color": "[38;5;7m",
+    "info_color": "[38;5;255m",
+    "end_color": "[0m",
+    "sat_colors": ["[1;33;40m", "[1;35;40m", "[1;36;40m", "[1;37;40m"]
   }
 }

@@ -60,7 +60,7 @@ echo ""
 echo -e "\e[96mstep 4: decoding s file...\033[0m"
 echo ""
 
-meteor_decode -o "${process}/${name}/meteor.png " --apid 65,65,64 -B "${process}/${name}/meteor.s"
+meteor_decode -o "${process}/${name}/meteor.png" --apid 65,65,64 -B "${process}/${name}/meteor.s"
 
 echo ""
 echo -e "\e[96mstep 5: rectifing output image...\033[0m"

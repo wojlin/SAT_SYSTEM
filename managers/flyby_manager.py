@@ -1,4 +1,5 @@
 import utils
+import globals
 
 
 def get_flyby_raw_list(sats, t_in, t_out, degree):
@@ -56,25 +57,32 @@ def get_flyby_filtered_list(sats, t_in, t_out, degree):
 
 
 def draw_box(flyby_json, entries_amount):
-    top_left = "╔"
-    top_right = "╗"
-    bottom_right = "╝"
-    bottom_left = "╚"
-    horizontal = "═"
-    vertical = "║"
-    width = 180
+    width = globals.WIDTH
+    upper_left_corner = globals.DRAWING_SETTINGS['upper_left_corner']
+    upper_right_corner = globals.DRAWING_SETTINGS['upper_right_corner']
+    lower_right_corner = globals.DRAWING_SETTINGS['lower_right_corner']
+    lower_left_corner = globals.DRAWING_SETTINGS['lower_left_corner']
+    horizontal_line = globals.DRAWING_SETTINGS['horizontal_line']
+    vertical_line = globals.DRAWING_SETTINGS['vertical_line']
+    left_opener = globals.DRAWING_SETTINGS['left_opener']
+    right_opener = globals.DRAWING_SETTINGS['right_opener']
+    border_color = '\033' + globals.DRAWING_SETTINGS['border_color']
+    text_color = '\033' + globals.DRAWING_SETTINGS['text_color']
+    info_color = '\033' + globals.DRAWING_SETTINGS['info_color']
+    end_color = '\033' + globals.DRAWING_SETTINGS['end_color']
 
     table = ''
 
     start = float(flyby_json["settings"]['start_epoch'])
     end = float(flyby_json["settings"]['end_epoch'])
     min_degree = flyby_json["settings"]['min_degree']
-    hours = int((end - start)/3600)
-    name = f"╣ FLYBY INFO (min {min_degree}° altitude, {hours} hours ahead, showing first {entries_amount}, UTC {utils.get_utc_offset()}) ╠"
+    hours = int((end - start) / 3600)
+    name = f"{left_opener} FLYBY INFO (min {min_degree}° altitude, {hours} hours ahead, showing first {entries_amount}, UTC {utils.get_utc_offset()}) {right_opener}"
     half_len = int(len(name) / 2)
     left_side = int(width / 2) - half_len
     table += str(
-    top_left + horizontal * left_side + name + horizontal * (width - (left_side + len(name))) + top_right + '\n')
+        border_color + upper_left_corner + horizontal_line * left_side + name + horizontal_line * (
+                width - (left_side + len(name))) + upper_right_corner + end_color + '\n')
 
     entry = 0
 
@@ -99,12 +107,11 @@ def draw_box(flyby_json, entries_amount):
 
     text_buffer += ' ' * (width - len(text_buffer))
 
-    table += str(vertical + text_buffer + vertical + '\n')
+    table += str(border_color + vertical_line + info_color + text_buffer + end_color + border_color + vertical_line + '\n')
 
     for key in flyby_json["events"]:
         entry += 1
         if entry <= entries_amount:
-
             rise_time = utils.utc_to_lc(flyby_json["events"][key]["rise"]['time'])
             culminate_time = utils.utc_to_lc(flyby_json["events"][key]["culminate"]['time'])
             set_time = utils.utc_to_lc(flyby_json["events"][key]["set"]['time'])
@@ -112,7 +119,7 @@ def draw_box(flyby_json, entries_amount):
             text_buffer = utils.add_col(f" {str(entry).zfill(2)}.", spaces[0]) + \
                           utils.add_col(flyby_json["events"][key]["name"], spaces[1]) + \
                           utils.add_col(str(round(float(flyby_json["events"][key]["culminate"]['altitude']), 2)) + "°",
-                                  spaces[2]) + \
+                                        spaces[2]) + \
                           utils.add_col(utils.min_sec(float(flyby_json["events"][key]["duration"])), spaces[3]) + \
                           utils.add_col("|", spaces[4]) + \
                           utils.add_col(rise_time, spaces[5]) + \
@@ -129,13 +136,13 @@ def draw_box(flyby_json, entries_amount):
 
             text_buffer += ' ' * (width - len(text_buffer))
 
-            table += vertical + text_buffer + vertical + '\n'
+            table += border_color + vertical_line + text_color + text_buffer + end_color + border_color + vertical_line + '\n'
 
     for x in range(entries_amount - entry):
         entry += 1
-        table += vertical + f" {str(entry).zfill(2)}. " + ' ' * (width - 5) + vertical + '\n'
+        table += vertical_line + f" {str(entry).zfill(2)}. " + ' ' * (width - 5) + vertical_line + '\n'
 
-    table += bottom_left + horizontal * width + bottom_right + '\n'
+    table += lower_left_corner + horizontal_line * width + lower_right_corner + '\n'
 
     height = entries_amount + 4
     return table, height

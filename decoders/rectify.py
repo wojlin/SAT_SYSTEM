@@ -6,7 +6,7 @@ import re
 import numpy
 from math import *
 from PIL import Image
-
+import os
 
         
 EARTH_RADIUS = 6371.0
@@ -105,7 +105,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     out_fname = re.sub("\..*$", "-rectified", sys.argv[1])
-
     img = Image.open(sys.argv[1])
     print("Opened {}x{} image".format(img.size[0], img.size[1]))
 

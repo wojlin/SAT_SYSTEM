@@ -1,21 +1,29 @@
+import globals
 import utils
 
 
 def draw_box(satellites):
-    top_left = "╔"
-    top_right = "╗"
-    bottom_right = "╝"
-    bottom_left = "╚"
-    horizontal = "═"
-    vertical = "║"
+    width = globals.WIDTH
+    upper_left_corner = globals.DRAWING_SETTINGS['upper_left_corner']
+    upper_right_corner = globals.DRAWING_SETTINGS['upper_right_corner']
+    lower_right_corner = globals.DRAWING_SETTINGS['lower_right_corner']
+    lower_left_corner = globals.DRAWING_SETTINGS['lower_left_corner']
+    horizontal_line = globals.DRAWING_SETTINGS['horizontal_line']
+    vertical_line = globals.DRAWING_SETTINGS['vertical_line']
+    left_opener = globals.DRAWING_SETTINGS['left_opener']
+    right_opener = globals.DRAWING_SETTINGS['right_opener']
+    border_color = '\033' + globals.DRAWING_SETTINGS['border_color']
+    text_color = '\033' + globals.DRAWING_SETTINGS['text_color']
+    info_color = '\033' + globals.DRAWING_SETTINGS['info_color']
+    end_color = '\033' + globals.DRAWING_SETTINGS['end_color']
+
 
     table = ''
-    width = 180
 
-    name = "╣ SATELLITE INFO ╠"
+    name = f"{left_opener} SATELLITE INFO {right_opener}"
     half_len = int(len(name) / 2)
     left_side = int(width / 2) - half_len
-    table += str(top_left + horizontal * left_side + name + horizontal * (width - (left_side + len(name))) + top_right + '\n')
+    table += str(border_color + upper_left_corner + horizontal_line * left_side + name + horizontal_line * (width - (left_side + len(name))) + upper_right_corner + end_color + '\n')
 
     spaces = [1, 15, 15, 20, 8, 4, 8, 14, 12, 4, 15, 15, 15, 4, 10]
 
@@ -37,7 +45,7 @@ def draw_box(satellites):
 
     text_buffer += ' ' * (width - len(text_buffer))
 
-    table += str(vertical + text_buffer + vertical + '\n')
+    table += str(border_color + vertical_line + info_color + text_buffer + border_color + vertical_line + end_color + '\n')
 
     for sat in satellites:
         line_data = sat.get_json()
@@ -60,9 +68,9 @@ def draw_box(satellites):
 
         text_buffer += ' ' * (width - len(text_buffer))
 
-        table += str(vertical + text_buffer + vertical + '\n')
+        table += str(border_color + vertical_line + text_color + text_buffer + border_color + vertical_line + end_color + '\n')
 
-    table += str(bottom_left + horizontal * width + bottom_right + '\n\n')
+    table += str(border_color + lower_left_corner + horizontal_line * width + lower_right_corner + end_color + '\n\n')
 
     height = len(satellites) + 4
 

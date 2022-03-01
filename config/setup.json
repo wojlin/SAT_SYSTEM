@@ -27,7 +27,8 @@
       "decode": true,
       "delete_temp_files": false,
       "decode_temp_path": "temp",
-      "output_dir_path": "output"
+      "output_dir_path": "output",
+      "write_metadata": true
   },
   "drawing_settings":
   {

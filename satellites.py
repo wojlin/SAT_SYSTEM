@@ -23,14 +23,23 @@ class satellite:
                                     datetime.utcnow().minute,
                                     datetime.utcnow().second)
 
+    @staticmethod
+    def datetime_to_utc(t_in_UTC):
+        return load.timescale().utc(t_in_UTC.year,
+                                    t_in_UTC.month,
+                                    t_in_UTC.day,
+                                    t_in_UTC.hour,
+                                    t_in_UTC.minute,
+                                    t_in_UTC.second)
+
     def get_position(self, t_in_UTC):
         geocentric = self.sat.at(t_in_UTC)
         lat, lon = wgs84.latlon_of(geocentric)
         return {"lat": lat.degrees, "lon": lon.degrees}
 
-    def get_direction(self):
-        pos1 = self.get_position(self.get_current_utc())
-        pos2 = self.get_position(self.get_current_utc() + timedelta(seconds=1))
+    def get_direction(self, t_in_UTC):
+        pos1 = self.get_position(t_in_UTC)
+        pos2 = self.get_position(t_in_UTC + timedelta(seconds=1))
         if pos1["lat"] > pos2["lat"]:
             direction = "down"
         else:
@@ -157,7 +166,7 @@ class satellite:
                     "type": self.type,
                     "epoch": self.get_epoch(),
                     "doppler": self.get_doppler(),
-                    "direction": self.get_direction(),
+                    "direction": self.get_direction(self.get_current_utc()),
                     "position": self.get_position(self.get_current_utc()),
                     "perspective": self.get_perspective_info(self.get_current_utc())}
         return out_json

@@ -1,13 +1,13 @@
 #! /usr/bin/bash
 
 
-if [ $# -ne 10 ]
+if [ $# -ne 12 ]
   then
-    echo -e "\e[31mERROR: script need 5 arguments: -n <name> -f <freq> -t <time to listen> -p <process path> -o <output path>\033[0m"
+    echo -e "\e[31mERROR: script need 6 arguments: -n <name> -f <freq> -t <time to listen> -p <process path> -o <output path> -m <metadata>\033[0m"
 fi
 
 
-while getopts ":n:f:t:p:o:" opt; do
+while getopts ":n:f:t:p:o:m:" opt; do
   case $opt in
     n) name="$OPTARG"
     ;;
@@ -18,6 +18,8 @@ while getopts ":n:f:t:p:o:" opt; do
     p) process="$OPTARG"
     ;;
     o) output="$OPTARG"
+    ;;
+    m) metadata="$OPTARG"
     ;;
     \?) echo -e "\e[31mERROR:Invalid option -$OPTARG\033[0m" >&2
     ;;
@@ -66,6 +68,8 @@ echo -e "\033[0m"
 
 echo -e "\e[96mimage received!\033[0m"
 echo ""
+
+python3 decoders/metadata.py "${output}"/"${name}".png "${metadata}"
 
 tiv "${process}/${name}/output.png" -w 70
 

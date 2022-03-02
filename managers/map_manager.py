@@ -1,4 +1,6 @@
 import math
+import json
+import utils
 from datetime import datetime, timedelta
 
 import globals
@@ -83,7 +85,7 @@ def draw_point(raw_map, lat_point, lon_point, char, color, **kwargs):
     return raw_map
 
 
-def draw_box(satellites, pathes):
+def draw_box(satellites):
     sats_buffer = satellites
 
     table = ''
@@ -105,17 +107,21 @@ def draw_box(satellites, pathes):
 
         colors = sat_colors
         current_color = 0
-        for sat in sats_buffer:
-            path_points = sat.get_position_path(datetime.utcnow(), datetime.utcnow() + timedelta(seconds=pathes), 60)
-            for point in path_points:
-                l_raw_map = draw_point(raw_map, path_points[point]["lat"], path_points[point]["lon"], "'",
-                                       colors[current_color])
-                raw_map = l_raw_map
 
-            current_color += 1
-            if current_color >= len(colors):
-                current_color = 0
-            raw_map = l_raw_map
+        if json.loads(utils.read_file('config/setup.json'))["drawing_settings"]['draw_satellite_path'] is True:
+            for sat in sats_buffer:
+                resolution = int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]['satellite_path_resolution'])
+                ahead = int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]['satellite_path_time_ahead'])
+                path_points = sat.get_position_path(datetime.utcnow(), datetime.utcnow() + timedelta(seconds=ahead), resolution)
+                for point in path_points:
+                    l_raw_map = draw_point(raw_map, path_points[point]["lat"], path_points[point]["lon"], "'",
+                                           colors[current_color])
+                    raw_map = l_raw_map
+
+                current_color += 1
+                if current_color >= len(colors):
+                    current_color = 0
+                raw_map = l_raw_map
 
         current_color = 0
         for sat in sats_buffer:

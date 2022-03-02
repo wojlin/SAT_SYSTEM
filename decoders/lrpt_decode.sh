@@ -1,12 +1,13 @@
 #! /usr/bin/bash
 
-if [ $# -ne 12 ]
+
+if [ $# -ne 14 ]
   then
-    echo -e "\e[31mERROR: script need 6 arguments: -n <name> -f <freq> -t <time to listen> -p <process path> -o <output path> -m <metadata>\033[0m"
+    echo -e "\e[31mERROR: script need 7 arguments: -n <name> -f <freq> -t <time to listen> -p <process path> -o <output path> -m <metadata> -d <delete temp>\033[0m"
 fi
 
 
-while getopts ":n:f:t:p:o:m:" opt; do
+while getopts ":n:f:t:p:o:m:d:" opt; do
   case $opt in
     n) name="$OPTARG"
     ;;
@@ -20,6 +21,8 @@ while getopts ":n:f:t:p:o:m:" opt; do
     ;;
     m) metadata="$OPTARG"
     ;;
+    d) delete="$OPTARG"
+    ;;
     \?) echo -e "\e[31mERROR:Invalid option -$OPTARG\033[0m" >&2
     ;;
   esac
@@ -30,18 +33,24 @@ while getopts ":n:f:t:p:o:m:" opt; do
   esac
 done
 
-echo -e "\e[96m@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\033[0m"
-echo -e "\e[96m@@@@@@@@                LRPT CLI CONVERTER                 @@@@@@@@@@@\033[0m"
-echo -e "\e[96m@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\033[0m"
-echo -e ""
-echo -e "\e[96mfrequency:\033[0m ${freq}MHz\033[0m"
-echo -e "\e[96mtime:\033[0m ${timer}s\033[0m"
-echo -e "\e[96mname:\033[0m ${name}\033[0m"
+lower_delete=${delete,,}
 
-mkdir "${process}/${name}"
+echo -e "\e[96mdecoder     : \033[0m LRPT \033[0m"
+echo -e "\e[96mfrequency   : \033[0m ${freq}MHz\033[0m"
+echo -e "\e[96mtime        : \033[0m ${timer}s\033[0m"
+echo -e "\e[96mname        : \033[0m ${name}\033[0m"
+echo -e "\e[96mdelete temp : \033[0m ${lower_delete}\033[0m"
+
+if [ -d "${process}/${name}" ]; then
+  echo ""
+  echo -e "\u001b[38;5;196mcannot create dir: '${process}/${name}' already exist \033[0m"
+else
+  mkdir "${process}/${name}"
+fi
+
 
 echo ""
-echo -e "\e[96mstep 1: recording samples... (this will take 10 minutes)\033[0m"
+echo -e "\e[96mstep 1: recording samples... (this will take ${timer} seconds)\033[0m"
 echo ""
 
 timeout ${timer}s rtl_fm -M raw -s 280000 -f "${freq}"M -E dc -g 70 -p 1 > "${process}/${name}/meteor.raw"
@@ -56,7 +65,7 @@ echo ""
 echo -e "\e[96mstep 3: demodulating wav file to s file...\033[0m"
 echo ""
 
-meteor_demod -O 8 -f 128 -m qpsk "${process}/${name}/meteor.wav" -o "${process}/${name}/meteor.s"
+meteor_demod -O 8 -f 128 -m qpsk "${process}/${name}/meteor.wav" -o "${process}/${name}/meteor.s" -B
 
 echo ""
 echo -e "\e[96mstep 4: decoding s file...\033[0m"
@@ -78,9 +87,10 @@ cp "${process}/${name}"/meteor-rectified.png "${output}"/"${name}".png
 
 python3 decoders/metadata.py "${output}"/"${name}".png "${metadata}"
 
+tiv "${process}/${name}/output.png" -w 70
+
 echo -e "\e[96m@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\033[0m"
 echo -e "\e[96m@@@@@@@@                   END                   @@@@@@@@@@@\033[0m"
 echo -e "\e[96m@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\033[0m"
 
-sleep 60
-
+exit

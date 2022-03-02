@@ -7,15 +7,14 @@ import sys
 
 import globals
 import utils
-from managers import info_manager, flyby_manager, map_manager, tle_manager, decode_manager
+from managers import info_manager, flyby_manager, map_manager, tle_manager, decode_manager, logging_manager
 
 
 def draw_board(table_name, first_time, add_height):
-    height = 0
     if table_name == 'map':
         sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
         sats = tle_manager.read_tle(sat_file)
-        table, height = map_manager.draw_box(satellites=sats, pathes=3600)
+        table, height = map_manager.draw_box(satellites=sats)
         if not first_time:
             for i in range(height + add_height):
                 sys.stdout.write("\033[F\033[K")
@@ -112,6 +111,7 @@ def manage_decode():
 
 
 def main():
+    globals.LOGGER = logging_manager.manage_logging()
     manage_tle()
     manage_decode()
     manage_box_drawing()

@@ -32,6 +32,9 @@
   },
   "drawing_settings":
   {
+    "draw_satellite_path": true,
+    "satellite_path_resolution": 50,
+    "satellite_path_time_ahead": 3600,
     "upper_left_corner": "╔",
     "upper_right_corner": "╗",
     "lower_left_corner": "╚",

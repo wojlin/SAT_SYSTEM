@@ -24,6 +24,7 @@ def tle_update_manager(interval, sats):
         for sat in sats:
             update_tle(str(sats[sat]['catalog_number']), str(sat))
         globals.LAST_ACTION = f"updated tle files from online source at {time.strftime('%Y-%m-%d %H:%M:%S')}"
+        globals.LOGGER.info(f"updated {len(sats)} tle files from online source")
         time.sleep(interval)
 
 

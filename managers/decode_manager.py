@@ -4,6 +4,7 @@ import datetime
 import pause
 import json
 import time
+from subprocess import Popen, PIPE
 
 import utils
 from managers import flyby_manager
@@ -11,21 +12,33 @@ import satellites
 import globals
 
 
-def decode(transmission_type, t_start, sat_name, name, freq, duration, temp, output, metadata):
+def decode(transmission_type, t_start, sat_name, name, freq, duration, temp, output, metadata, delete):
     dt = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
     pause.until(dt)
+    globals.LOGGER.info("decoding image from satellite:\n"
+                        f"* satellite name    : {sat_name}\n"
+                        f"* transmission type : {transmission_type}\n"
+                        f"* frequency         : {freq}\n"
+                        f"* duration          : {duration}")
     globals.LAST_ACTION = f"{t_start} decoding {sat_name} {transmission_type} transmission on {freq}Mhz"
+    t = 'error'
     if transmission_type == "APT":
-        subprocess.call(
+        t = subprocess.Popen(
             ['gnome-terminal', '--', f'{globals.PATH}/decoders/apt_decode.sh', '-n', f'{name}', '-f', f'{freq}', '-t',
-             f'{duration}', '-p', f'{temp}', '-o', f'{output}', '-m', metadata])
+             f'{duration}', '-p', f'{temp}', '-o', f'{output}', '-m', metadata, '-d', str(delete)], stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
     elif transmission_type == "LRPT":
-        subprocess.call(
+        t = subprocess.Popen(
             ['gnome-terminal', '--', f'{globals.PATH}/decoders/lrpt_decode.sh', '-n', f'{name}', '-f', f'{freq}', '-t',
-             f'{duration}', '-p', f'{temp}', '-o', f'{output}', '-m', metadata])
+             f'{duration}', '-p', f'{temp}', '-o', f'{output}', '-m', metadata, '-d', str(delete)], stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
     else:
         globals.LAST_ACTION = "cannot decode: unsupported decoding type"
     time.sleep(int(duration))
+    stdout, stderr = t.communicate()
+    globals.LOGGER.info("decoded image from satellite:\n"
+                        f"{stdout, stderr}")
+
     globals.LAST_ACTION = f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} decoded {sat_name} {transmission_type} transmission on {freq}Mhz"
 
 
@@ -43,7 +56,8 @@ def decode_manager(sats: [satellites.satellite], t_in, t_out, angle, delete_temp
             utc_epoch_set = flyby_list["events"][key]["set"]["epoch"]
 
             utc_time_rise = datetime.datetime.strptime(flyby_list["events"][key]["rise"]["time"], '%Y-%m-%d %H:%M:%S')
-            utc_time_culminate = datetime.datetime.strptime(flyby_list["events"][key]["culminate"]["time"], '%Y-%m-%d %H:%M:%S')
+            utc_time_culminate = datetime.datetime.strptime(flyby_list["events"][key]["culminate"]["time"],
+                                                            '%Y-%m-%d %H:%M:%S')
             utc_time_set = datetime.datetime.strptime(flyby_list["events"][key]["set"]["time"], '%Y-%m-%d %H:%M:%S')
 
             for sat in sats:
@@ -107,12 +121,13 @@ def decode_manager(sats: [satellites.satellite], t_in, t_out, angle, delete_temp
                                                          "duration": duration,
                                                          "temp": temp,
                                                          "output": output,
-                                                         "metadata": metadata})
+                                                         "metadata": metadata,
+                                                         "delete": delete_temp})
                     decode_thread.start()
                     break
 
         # testing
-        '''decode_thread = threading.Thread(target=decode,
+        decode_thread = threading.Thread(target=decode,
                                          kwargs={"transmission_type": 'LRPT',
                                                  "t_start": '2022-02-28 14:20:00',
                                                  "sat_name": 'meteor',
@@ -120,8 +135,11 @@ def decode_manager(sats: [satellites.satellite], t_in, t_out, angle, delete_temp
                                                  "freq": '69',
                                                  "duration": '10',
                                                  "temp": 'temp',
-                                                 "output": 'output'})
-        decode_thread.start()'''
+                                                 "output": 'output',
+                                                 "metadata": json.dumps({"status": "metadata_enabled"}),
+                                                 "delete": delete_temp})
+        decode_thread.start()
 
         globals.LAST_ACTION = f"scheduled flyby decode for {len(flyby_list['events'])} events"
+        globals.LOGGER.info(f"scheduled flyby decode for {len(flyby_list['events'])} events")
         time.sleep(delay)

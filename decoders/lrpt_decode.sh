@@ -43,7 +43,9 @@ echo -e "\e[96mdelete temp : \033[0m ${lower_delete}\033[0m"
 
 if [ -d "${process}/${name}" ]; then
   echo ""
-  echo -e "\u001b[38;5;196mcannot create dir: '${process}/${name}' already exist \033[0m"
+  echo -e "\u001b[38;5;196mcannot create dir: '${process}/${name}' already exist! aborting... \033[0m"
+  sleep 10
+  exit
 else
   mkdir "${process}/${name}"
 fi
@@ -85,12 +87,30 @@ echo ""
 
 cp "${process}/${name}"/meteor-rectified.png "${output}"/"${name}".png
 
+
+echo ""
+echo -e "\e[96mstep 6: writing metadata to output file...\033[0m"
+echo ""
+
 python3 decoders/metadata.py "${output}"/"${name}".png "${metadata}"
 
-tiv "${process}/${name}/output.png" -w 70
+if [ "$lower_delete" == "true" ]; then
+    echo ""
+    echo -e "\e[96mstep 7: deleting temp files directory...\033[0m"
+    echo ""
+    dir="${process}/${name}"
+    if [ "$dir" == "/" ]; then
+      echo -e "\u001b[38;5;196mtrying to delete root dir!!! aborting... \033[0m"
+      sleep 10
+      exit
+    else
+      rm -rf "${dir:?}/"
+    fi
+fi
 
-echo -e "\e[96m@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\033[0m"
-echo -e "\e[96m@@@@@@@@                   END                   @@@@@@@@@@@\033[0m"
-echo -e "\e[96m@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\033[0m"
+tiv "${output}"/"${name}".png -w 70
 
+echo ""
+echo -e "\e[96mdecoding done!\033[0m"
+sleep 60
 exit

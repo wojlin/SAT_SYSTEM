@@ -25,7 +25,7 @@
   "decode_settings":
   {
       "decode": true,
-      "delete_temp_files": false,
+      "delete_temp_files": true,
       "decode_temp_path": "temp",
       "output_dir_path": "output",
       "write_metadata": true

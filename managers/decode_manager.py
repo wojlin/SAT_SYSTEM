@@ -128,7 +128,7 @@ def decode_manager(sats: [satellites.satellite], t_in, t_out, angle, delete_temp
 
         # testing
         decode_thread = threading.Thread(target=decode,
-                                         kwargs={"transmission_type": 'LRPT',
+                                         kwargs={"transmission_type": 'APT',
                                                  "t_start": '2022-02-28 14:20:00',
                                                  "sat_name": 'meteor',
                                                  "name": f"test",

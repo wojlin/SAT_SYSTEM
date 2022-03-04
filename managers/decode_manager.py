@@ -15,7 +15,7 @@ import globals
 def decode(transmission_type, t_start, sat_name, name, freq, duration, temp, output, metadata, delete):
     dt = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
     pause.until(dt)
-    globals.LOGGER.info("decoding image from satellite:\n"
+    globals.LOGGER.error("decoding image from satellite:\n"
                         f"* satellite name    : {sat_name}\n"
                         f"* transmission type : {transmission_type}\n"
                         f"* frequency         : {freq}\n"
@@ -36,7 +36,7 @@ def decode(transmission_type, t_start, sat_name, name, freq, duration, temp, out
         globals.LAST_ACTION = "cannot decode: unsupported decoding type"
     time.sleep(int(duration))
     stdout, stderr = t.communicate()
-    globals.LOGGER.info("decoded image from satellite:\n"
+    globals.LOGGER.error("decoded image from satellite:\n"
                         f"{stdout, stderr}")
 
     globals.LAST_ACTION = f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} decoded {sat_name} {transmission_type} transmission on {freq}Mhz"
@@ -141,5 +141,5 @@ def decode_manager(sats: [satellites.satellite], t_in, t_out, angle, delete_temp
         decode_thread.start()'''
 
         globals.LAST_ACTION = f"scheduled flyby decode for {len(flyby_list['events'])} events"
-        globals.LOGGER.info(f"scheduled flyby decode for {len(flyby_list['events'])} events")
+        globals.LOGGER.error(f"scheduled flyby decode for {len(flyby_list['events'])} events")
         time.sleep(delay)

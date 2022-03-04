@@ -11,6 +11,8 @@ TEMP = str(json.loads(utils.read_file('config/setup.json'))["decode_settings"]['
 PATH = os.path.abspath('')
 WIDTH = 180
 HEIGHT = 45
+HOST = json.loads(utils.read_file('config/setup.json'))["api_settings"]["host"]
+PORT = json.loads(utils.read_file('config/setup.json'))["api_settings"]["port"]
 
 DRAWING_SETTINGS = {}
 

@@ -1,4 +1,5 @@
 {
+  "write_log": true,
   "ground_station":
   {
     "lat": 54.408010,
@@ -15,6 +16,12 @@
     "flyby": 60,
     "info": 1,
     "last": 0.5
+  },
+  "api_settings":
+  {
+    "use_api": true,
+    "host": "localhost",
+    "port": 2137
   },
   "flyby_prediction_settings":
   {

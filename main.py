@@ -7,7 +7,7 @@ import sys
 
 import globals
 import utils
-from managers import info_manager, flyby_manager, map_manager, tle_manager, decode_manager, logging_manager
+from managers import info_manager, flyby_manager, map_manager, tle_manager, decode_manager, logging_manager, api_manager
 
 
 def draw_board(table_name, first_time, add_height):
@@ -47,7 +47,17 @@ def draw_board(table_name, first_time, add_height):
         height = 1
         for i in range(height + add_height):
             sys.stdout.write("\033[F\033[K")
-        sys.stdout.write(f"LAST ACTION: {globals.LAST_ACTION}\n")
+
+        spaces = [100, 20]
+
+        text_buffer = utils.add_col(f"LAST ACTION: {globals.LAST_ACTION}", spaces[0]) + \
+                      utils.add_col(f"RADIO:", spaces[1])
+        target = f"http://{globals.HOST}:{globals.PORT}"
+        server = f"SERVER: \u001b]8;;{target}\u001b\\{target}\u001b]8;;\u001b\\"
+        text_buffer += (' ' * (globals.WIDTH - len(text_buffer) - len(target) - len("SERVER:")) + server)
+
+        sys.stdout.write(str(text_buffer + '\n'))
+
     else:
         raise Exception("module does not exist")
     return height
@@ -110,8 +120,15 @@ def manage_decode():
         tle_update_manager_thread.start()
 
 
+def manage_api():
+    if json.loads(utils.read_file('config/setup.json'))["api_settings"]['use_api'] is True:
+        api_manager_thread = threading.Thread(target=api_manager.start_api)
+        api_manager_thread.start()
+
+
 def main():
     globals.LOGGER = logging_manager.manage_logging()
+    manage_api()
     manage_tle()
     manage_decode()
     manage_box_drawing()

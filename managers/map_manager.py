@@ -1,7 +1,9 @@
 import math
 import json
 import utils
+import numpy as np
 from datetime import datetime, timedelta
+from skyfield.api import load
 
 import globals
 
@@ -85,6 +87,34 @@ def draw_point(raw_map, lat_point, lon_point, char, color, **kwargs):
     return raw_map
 
 
+def terminator(_width, date):
+    ts = load.timescale()
+    t = ts.utc(date.year, date.month, date.day, date.hour, date.minute)
+    eph = load('de421.bsp')
+    astrometric = eph['earth'].at(t).observe(eph['sun'])
+    ra, dec, distance = astrometric.radec()
+    dec = dec.degrees
+    ra = ra.hours
+
+    nlons = _width
+    nlats = int(((nlons - 1) / 2) + 1)
+
+    dg2rad = np.pi / 180.
+    lons = np.linspace(-180, 180, nlons)
+    longitude = lons + ra
+    lats = np.arctan(-np.cos(longitude * dg2rad) / np.tan(dec * dg2rad)) / dg2rad
+
+    lons2 = np.linspace(-180, 180, nlons)
+    lats2 = np.linspace(-90, 90, nlats)
+    lons2, lats2 = np.meshgrid(lons2, lats2)
+    daynight = np.ones(lons2.shape, np.int)
+
+    for nlon in range(nlons):
+        daynight[:, nlon] = np.where(lats2[:, nlon] < lats[nlon], 0, daynight[:, nlon])
+
+    return daynight
+
+
 def draw_box(satellites):
     sats_buffer = satellites
 
@@ -102,6 +132,14 @@ def draw_box(satellites):
         for line in f:
             raw_map.append([earth_char(earth_color, char, end_color) for char in list(line.rstrip("\n"))])
 
+        night_day = terminator(width, datetime.utcnow())
+
+        for y in range(len(raw_map)):
+            for x in range(len(raw_map[y])):
+                if int(night_day[y][x]) == 0:
+                    #raw_map[y][x].left_side = '\033[48;5;19m'
+                    raw_map[y][x].left_side = '\033[1;34;40m'
+
         raw_map = draw_point(raw_map, globals.POS["lat"], globals.POS["lon"], ground_station, ground_station_color,
                              name=ground_station_name)
 
@@ -110,9 +148,12 @@ def draw_box(satellites):
 
         if json.loads(utils.read_file('config/setup.json'))["drawing_settings"]['draw_satellite_path'] is True:
             for sat in sats_buffer:
-                resolution = int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]['satellite_path_resolution'])
-                ahead = int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]['satellite_path_time_ahead'])
-                path_points = sat.get_position_path(datetime.utcnow(), datetime.utcnow() + timedelta(seconds=ahead), resolution)
+                resolution = int(
+                    json.loads(utils.read_file('config/setup.json'))["drawing_settings"]['satellite_path_resolution'])
+                ahead = int(
+                    json.loads(utils.read_file('config/setup.json'))["drawing_settings"]['satellite_path_time_ahead'])
+                path_points = sat.get_position_path(datetime.utcnow(), datetime.utcnow() + timedelta(seconds=ahead),
+                                                    resolution)
                 for point in path_points:
                     l_raw_map = draw_point(raw_map, path_points[point]["lat"], path_points[point]["lon"], "'",
                                            colors[current_color])

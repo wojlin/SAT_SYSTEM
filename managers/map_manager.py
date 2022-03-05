@@ -89,13 +89,13 @@ def draw_point(raw_map, lat_point, lon_point, char, color, **kwargs):
 
 def terminator(_width, date):
     ts = load.timescale()
-    t = ts.utc(date.year, date.month, date.day, date.hour, date.minute)
+    t = ts.utc(date.year, date.month, date.day, date.hour, date.minute, date.second)
     eph = load('de421.bsp')
     astrometric = eph['earth'].at(t).observe(eph['sun'])
     ra, dec, distance = astrometric.radec()
-    dec = dec.degrees
-    ra = ra.hours
 
+    dec = dec.degrees
+    ra = 360 * (date.hour / 24)
     nlons = _width
     nlats = int(((nlons - 1) / 2) + 1)
 

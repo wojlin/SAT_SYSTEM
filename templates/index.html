@@ -2,9 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>SAT SYSTEM</title>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/page.css') }}">
 </head>
 <body>
-    <h1>SAT SYSTEM</h1>
+
+    <div class="container">
+      <div id="map_box" class="map_box"></div>
+      <div class="flyby_box"></div>
+      <div class="info_box"></div>
+      <div class="map_settings_box"></div>
+      <div class="flyby_settings_box"></div>
+      <div class="info_settings_box"></div>
+      <div class="title"><h1>SAT SYSTEM</h1></div>
+    </div>
+    <script src="{{url_for('static', filename='js/get_map.js')}}"></script>
 </body>
 </html>

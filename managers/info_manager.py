@@ -2,21 +2,34 @@ import globals
 import utils
 
 
-def draw_box(satellites):
+def draw_box(satellites, drawing_settings):
     width = globals.WIDTH
-    upper_left_corner = globals.DRAWING_SETTINGS['upper_left_corner']
-    upper_right_corner = globals.DRAWING_SETTINGS['upper_right_corner']
-    lower_right_corner = globals.DRAWING_SETTINGS['lower_right_corner']
-    lower_left_corner = globals.DRAWING_SETTINGS['lower_left_corner']
-    horizontal_line = globals.DRAWING_SETTINGS['horizontal_line']
-    vertical_line = globals.DRAWING_SETTINGS['vertical_line']
-    left_opener = globals.DRAWING_SETTINGS['left_opener']
-    right_opener = globals.DRAWING_SETTINGS['right_opener']
-    border_color = '\033' + globals.DRAWING_SETTINGS['border_color']
-    text_color = '\033' + globals.DRAWING_SETTINGS['text_color']
-    info_color = '\033' + globals.DRAWING_SETTINGS['info_color']
-    end_color = '\033' + globals.DRAWING_SETTINGS['end_color']
+    upper_left_corner = drawing_settings.option['upper_left_corner']
+    upper_right_corner = drawing_settings.option['upper_right_corner']
+    lower_right_corner = drawing_settings.option['lower_right_corner']
+    lower_left_corner = drawing_settings.option['lower_left_corner']
+    horizontal_line = drawing_settings.option['horizontal_line']
+    vertical_line = drawing_settings.option['vertical_line']
+    left_opener = drawing_settings.option['left_opener']
+    right_opener = drawing_settings.option['right_opener']
 
+    border_color = drawing_settings.option[drawing_settings.render]['border_color']
+    text_color = drawing_settings.option[drawing_settings.render]['text_color']
+    info_color = drawing_settings.option[drawing_settings.render]['info_color']
+    end_color = drawing_settings.option[drawing_settings.render]['end_color']
+
+    if drawing_settings.render == 'ansi':
+        border_color = '\033' + border_color
+        text_color = '\033' + text_color
+        info_color = '\033' + info_color
+        end_color = '\033' + end_color
+    elif drawing_settings.render == 'html':
+        border_color = '<span style="color:' + border_color + '">'
+        text_color = '<span style="color:' + text_color + '">'
+        info_color = '<span style="color:' + info_color + '">'
+        end_color = '</span>'
+    else:
+        raise Exception("unsupported render type")
 
     table = ''
 

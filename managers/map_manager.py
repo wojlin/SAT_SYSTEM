@@ -9,26 +9,6 @@ import globals
 
 width = globals.WIDTH
 height = globals.HEIGHT
-upper_left_corner = globals.DRAWING_SETTINGS['upper_left_corner']
-upper_right_corner = globals.DRAWING_SETTINGS['upper_right_corner']
-lower_right_corner = globals.DRAWING_SETTINGS['lower_right_corner']
-lower_left_corner = globals.DRAWING_SETTINGS['lower_left_corner']
-horizontal_line = globals.DRAWING_SETTINGS['horizontal_line']
-vertical_line = globals.DRAWING_SETTINGS['vertical_line']
-left_opener = globals.DRAWING_SETTINGS['left_opener']
-right_opener = globals.DRAWING_SETTINGS['right_opener']
-satellite = globals.DRAWING_SETTINGS['satellite']
-arrow_up = globals.DRAWING_SETTINGS['arrow_up']
-arrow_down = globals.DRAWING_SETTINGS['arrow_down']
-ground_station = globals.DRAWING_SETTINGS['ground_station']
-ground_station_name = globals.DRAWING_SETTINGS['ground_station_name']
-ground_station_color = '\033' + globals.DRAWING_SETTINGS['ground_station_color']
-sat_colors = ['\033' + color for color in globals.DRAWING_SETTINGS['sat_colors']]
-border_color = '\033' + globals.DRAWING_SETTINGS['border_color']
-text_color = '\033' + globals.DRAWING_SETTINGS['text_color']
-info_color = '\033' + globals.DRAWING_SETTINGS['info_color']
-earth_color = '\033' + globals.DRAWING_SETTINGS['earth_color']
-end_color = '\033' + globals.DRAWING_SETTINGS['end_color']
 
 
 class earth_char:
@@ -44,8 +24,16 @@ class earth_char:
         return str(self.left_side + self.center + self.right_side)
 
 
-def draw_point(raw_map, lat_point, lon_point, char, color, **kwargs):
+def draw_point(drawing_settings, raw_map, lat_point, lon_point, char, color, **kwargs):
     global height, width
+
+    if drawing_settings.render == 'ansi':
+        end_color = '\033' + drawing_settings.option[drawing_settings.render]['end_color']
+    elif drawing_settings.render == 'html':
+        end_color = '</span>'
+    else:
+        raise Exception("unsupported render type")
+
     lon = 0
     lat = 0
     name = ''
@@ -115,7 +103,45 @@ def terminator(_width, date):
     return daynight
 
 
-def draw_box(satellites):
+def draw_box(satellites, drawing_settings):
+    upper_left_corner = drawing_settings.option['upper_left_corner']
+    upper_right_corner = drawing_settings.option['upper_right_corner']
+    lower_right_corner = drawing_settings.option['lower_right_corner']
+    lower_left_corner = drawing_settings.option['lower_left_corner']
+    horizontal_line = drawing_settings.option['horizontal_line']
+    vertical_line = drawing_settings.option['vertical_line']
+    left_opener = drawing_settings.option['left_opener']
+    right_opener = drawing_settings.option['right_opener']
+    satellite = drawing_settings.option['satellite']
+    arrow_up = drawing_settings.option['arrow_up']
+    arrow_down = drawing_settings.option['arrow_down']
+    ground_station = drawing_settings.option['ground_station']
+    ground_station_name = drawing_settings.option['ground_station_name']
+
+    border_color = drawing_settings.option[drawing_settings.render]['border_color']
+    earth_color = drawing_settings.option[drawing_settings.render]['earth_color']
+    earth_color_night = drawing_settings.option[drawing_settings.render]['earth_color_night']
+    end_color = drawing_settings.option[drawing_settings.render]['end_color']
+
+    ground_station_color = drawing_settings.option[drawing_settings.render]['ground_station_color']
+
+    if drawing_settings.render == 'ansi':
+        border_color = '\033' + border_color
+        earth_color = '\033' + earth_color
+        earth_color_night = '\033' + earth_color_night
+        end_color = '\033' + end_color
+        sat_colors = ['\033' + color for color in drawing_settings.option[drawing_settings.render]['sat_colors']]
+        ground_station_color = '\033' + ground_station_color
+    elif drawing_settings.render == 'html':
+        border_color = '<span style="color:' + border_color + '">'
+        earth_color = '<span style="color:' + earth_color + '">'
+        earth_color_night = '<span style="color:' + earth_color_night + '">'
+        end_color = '</span>'
+        sat_colors = ['<span style="color:' + color + '">' for color in drawing_settings.option[drawing_settings.render]['sat_colors']]
+        ground_station_color = '<span style="color:' + ground_station_color + '">'
+    else:
+        raise Exception("unsupported render type")
+
     sats_buffer = satellites
 
     table = ''
@@ -132,15 +158,16 @@ def draw_box(satellites):
         for line in f:
             raw_map.append([earth_char(earth_color, char, end_color) for char in list(line.rstrip("\n"))])
 
-        night_day = terminator(width, datetime.utcnow())
+        if json.loads(utils.read_file('config/setup.json'))["drawing_settings"]['draw_day_night_cycle'] is True:
+            night_day = terminator(width, datetime.utcnow())
 
-        for y in range(len(raw_map)):
-            for x in range(len(raw_map[y])):
-                if int(night_day[y][x]) == 0:
-                    #raw_map[y][x].left_side = '\033[48;5;19m'
-                    raw_map[y][x].left_side = '\033[1;34;40m'
+            for y in range(len(raw_map)):
+                for x in range(len(raw_map[y])):
+                    if int(night_day[y][x]) == 0:
+                        raw_map[y][x].left_side = earth_color_night
 
-        raw_map = draw_point(raw_map, globals.POS["lat"], globals.POS["lon"], ground_station, ground_station_color,
+        raw_map = draw_point(drawing_settings, raw_map, globals.POS["lat"], globals.POS["lon"], ground_station,
+                             ground_station_color,
                              name=ground_station_name)
 
         colors = sat_colors
@@ -155,7 +182,8 @@ def draw_box(satellites):
                 path_points = sat.get_position_path(datetime.utcnow(), datetime.utcnow() + timedelta(seconds=ahead),
                                                     resolution)
                 for point in path_points:
-                    l_raw_map = draw_point(raw_map, path_points[point]["lat"], path_points[point]["lon"], "'",
+                    l_raw_map = draw_point(drawing_settings, raw_map, path_points[point]["lat"],
+                                           path_points[point]["lon"], "'",
                                            colors[current_color])
                     raw_map = l_raw_map
 
@@ -167,7 +195,8 @@ def draw_box(satellites):
         current_color = 0
         for sat in sats_buffer:
             l_sat = sat.get_json()
-            l_raw_map = draw_point(raw_map, l_sat["position"]['lat'], l_sat["position"]['lon'], satellite,
+            l_raw_map = draw_point(drawing_settings, raw_map, l_sat["position"]['lat'], l_sat["position"]['lon'],
+                                   satellite,
                                    colors[current_color],
                                    name=l_sat["name"],
                                    direction=str(arrow_up if l_sat["direction"] == "up" else arrow_down))
@@ -185,4 +214,11 @@ def draw_box(satellites):
             lower_right_corner + end_color + '\n')
 
     map_height = height + 2
-    return table, map_height
+
+    if drawing_settings.render == 'ansi':
+        return table, map_height
+    elif drawing_settings.render == 'html':
+        table = "<pre>" + table + "</pre>"
+        return table, map_height
+    else:
+        raise Exception("unsupported render type")

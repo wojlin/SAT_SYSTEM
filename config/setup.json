@@ -42,6 +42,7 @@
     "draw_satellite_path": true,
     "satellite_path_resolution": 50,
     "satellite_path_time_ahead": 3600,
+    "draw_day_night_cycle": true,
     "upper_left_corner": "╔",
     "upper_right_corner": "╗",
     "lower_left_corner": "╚",
@@ -55,12 +56,29 @@
     "satellite": "\uD83D\uDEF0",
     "ground_station": "o",
     "ground_station_name": "HOME",
-    "ground_station_color": "[1;31;40m",
-    "border_color": "[38;5;38m",
-    "earth_color": "[1;32;40m",
-    "text_color": "[38;5;7m",
-    "info_color": "[38;5;255m",
-    "end_color": "[0m",
-    "sat_colors": ["[1;33;40m", "[1;35;40m", "[1;36;40m", "[1;37;40m"]
+    "ansi":
+    {
+      "ground_station_color": "[1;31;40m",
+      "border_color": "[38;5;38m",
+      "earth_color": "[1;32;40m",
+      "earth_color_night": "[1;34;40m",
+      "earth_color_sunset": "[1;34;40m",
+      "text_color": "[38;5;7m",
+      "info_color": "[38;5;255m",
+      "end_color": "[0m",
+      "sat_colors": ["[1;33;40m", "[1;35;40m", "[1;36;40m", "[1;37;40m"]
+    },
+    "html":
+    {
+      "ground_station_color": "#ff0000",
+      "border_color": "#00ffe5",
+      "earth_color": "#46f23a",
+      "earth_color_night": "#3a71f2",
+      "earth_color_sunset": "#9e380d",
+      "text_color": "#ababab",
+      "info_color": "#ffffff",
+      "end_color": "#ffffff",
+      "sat_colors": ["#ffff00", "#9000ff", "#ff00ea", "#ff0000"]
+    }
   }
 }

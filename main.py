@@ -10,11 +10,11 @@ import utils
 from managers import info_manager, flyby_manager, map_manager, tle_manager, decode_manager, logging_manager, api_manager
 
 
-def draw_board(table_name, first_time, add_height):
+def draw_board(table_name, drawing_settings, first_time, add_height):
     if table_name == 'map':
         sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
         sats = tle_manager.read_tle(sat_file)
-        table, height = map_manager.draw_box(satellites=sats)
+        table, height = map_manager.draw_box(satellites=sats, drawing_settings=drawing_settings)
         if not first_time:
             for i in range(height + add_height):
                 sys.stdout.write("\033[F\033[K")
@@ -22,13 +22,14 @@ def draw_board(table_name, first_time, add_height):
         sys.stdout.write('\n')
     elif table_name == 'flyby':
         sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
+        sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
         sats = tle_manager.read_tle(sat_file)
         hours = int(json.loads(utils.read_file('config/setup.json'))["flyby_prediction_settings"]['hours_ahead'])
         angle = int(json.loads(utils.read_file('config/setup.json'))["flyby_prediction_settings"]['minimal_angle'])
         amount = int(json.loads(utils.read_file('config/setup.json'))["flyby_prediction_settings"]['display_amount'])
         filtered_list = flyby_manager.get_flyby_filtered_list(sats, datetime.utcnow(),
                                                               datetime.utcnow() + timedelta(hours=hours), angle)
-        table, height = flyby_manager.draw_box(filtered_list, amount)
+        table, height = flyby_manager.draw_box(filtered_list, amount, drawing_settings=drawing_settings)
         if not first_time:
             for i in range(height + add_height):
                 sys.stdout.write("\033[F\033[K")
@@ -37,7 +38,7 @@ def draw_board(table_name, first_time, add_height):
     elif table_name == 'info':
         sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
         sats = tle_manager.read_tle(sat_file)
-        table, height = info_manager.draw_box(sats)
+        table, height = info_manager.draw_box(sats, drawing_settings=drawing_settings)
         if not first_time:
             for i in range(height + add_height):
                 sys.stdout.write("\033[F\033[K")
@@ -72,11 +73,11 @@ def manage_tle():
         tle_update_manager_thread.start()
 
 
-def manage_box_drawing():
-    heights = [['map', draw_board('map', first_time=True, add_height=0)],
-               ['flyby', draw_board('flyby', first_time=True, add_height=0)],
-               ['info', draw_board('info', first_time=True, add_height=0)],
-               ['last', draw_board('last', first_time=True, add_height=0)]]
+def manage_box_drawing(drawing_settings):
+    heights = [['map', draw_board('map', drawing_settings, first_time=True, add_height=0)],
+               ['flyby', draw_board('flyby', drawing_settings, first_time=True, add_height=0)],
+               ['info', draw_board('info', drawing_settings, first_time=True, add_height=0)],
+               ['last', draw_board('last', drawing_settings, first_time=True, add_height=0)]]
 
     timeouts_load = json.loads(utils.read_file('config/setup.json'))["console_update"]
     timeouts = json.loads(utils.read_file('config/setup.json'))["console_update"]
@@ -93,9 +94,9 @@ def manage_box_drawing():
                         index = i
                 for i in range(index + 1, len(heights)):
                     add_height += heights[i][1]
-                draw_board(key, first_time=False, add_height=add_height)
+                draw_board(key, first_time=False, add_height=add_height, drawing_settings=drawing_settings)
                 for i in range(index + 1, len(heights)):
-                    draw_board(heights[i][0], first_time=True, add_height=0)
+                    draw_board(heights[i][0], first_time=True, add_height=0, drawing_settings=drawing_settings)
                 timeouts[key] = timeouts_load[key]
 
 
@@ -131,7 +132,7 @@ def main():
     manage_api()
     manage_tle()
     manage_decode()
-    manage_box_drawing()
+    manage_box_drawing(globals.ANSI_DRAWING_SETTINGS)
 
 
 if __name__ == '__main__':

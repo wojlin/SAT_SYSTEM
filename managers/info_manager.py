@@ -4,14 +4,14 @@ import utils
 
 def draw_box(satellites, drawing_settings):
     width = globals.WIDTH
-    upper_left_corner = drawing_settings.option['upper_left_corner']
-    upper_right_corner = drawing_settings.option['upper_right_corner']
-    lower_right_corner = drawing_settings.option['lower_right_corner']
-    lower_left_corner = drawing_settings.option['lower_left_corner']
-    horizontal_line = drawing_settings.option['horizontal_line']
-    vertical_line = drawing_settings.option['vertical_line']
-    left_opener = drawing_settings.option['left_opener']
-    right_opener = drawing_settings.option['right_opener']
+    upper_left_corner = drawing_settings.option["chars"]['upper_left_corner']
+    upper_right_corner = drawing_settings.option["chars"]['upper_right_corner']
+    lower_right_corner = drawing_settings.option["chars"]['lower_right_corner']
+    lower_left_corner = drawing_settings.option["chars"]['lower_left_corner']
+    horizontal_line = drawing_settings.option["chars"]['horizontal_line']
+    vertical_line = drawing_settings.option["chars"]['vertical_line']
+    left_opener = drawing_settings.option["chars"]['left_opener']
+    right_opener = drawing_settings.option["chars"]['right_opener']
 
     border_color = drawing_settings.option[drawing_settings.render]['border_color']
     text_color = drawing_settings.option[drawing_settings.render]['text_color']
@@ -87,4 +87,10 @@ def draw_box(satellites, drawing_settings):
 
     height = len(satellites) + 4
 
-    return table, height
+    if drawing_settings.render == 'ansi':
+        return table, height
+    elif drawing_settings.render == 'html':
+        table = "<pre>" + table + "</pre>"
+        return table, height
+    else:
+        raise Exception("unsupported render type")

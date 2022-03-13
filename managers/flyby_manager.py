@@ -58,20 +58,34 @@ def get_flyby_filtered_list(sats, t_in, t_out, degree):
 
 def draw_box(flyby_json, entries_amount, drawing_settings):
     width = globals.WIDTH
-    upper_left_corner = drawing_settings.option['upper_left_corner']
-    upper_right_corner = drawing_settings.option['upper_right_corner']
-    lower_right_corner = drawing_settings.option['lower_right_corner']
-    lower_left_corner = drawing_settings.option['lower_left_corner']
-    horizontal_line = drawing_settings.option['horizontal_line']
-    vertical_line = drawing_settings.option['vertical_line']
-    left_opener = drawing_settings.option['left_opener']
-    right_opener = drawing_settings.option['right_opener']
-    border_color = '\033' + drawing_settings.option[drawing_settings.render]['border_color']
-    text_color = '\033' + drawing_settings.option[drawing_settings.render]['text_color']
-    info_color = '\033' + drawing_settings.option[drawing_settings.render]['info_color']
-    end_color = '\033' + drawing_settings.option[drawing_settings.render]['end_color']
+    upper_left_corner = drawing_settings.option["chars"]['upper_left_corner']
+    upper_right_corner = drawing_settings.option["chars"]['upper_right_corner']
+    lower_right_corner = drawing_settings.option["chars"]['lower_right_corner']
+    lower_left_corner = drawing_settings.option["chars"]['lower_left_corner']
+    horizontal_line = drawing_settings.option["chars"]['horizontal_line']
+    vertical_line = drawing_settings.option["chars"]['vertical_line']
+    left_opener = drawing_settings.option["chars"]['left_opener']
+    right_opener = drawing_settings.option["chars"]['right_opener']
+    border_color = drawing_settings.option[drawing_settings.render]['border_color']
+    text_color = drawing_settings.option[drawing_settings.render]['text_color']
+    info_color = drawing_settings.option[drawing_settings.render]['info_color']
+    end_color = drawing_settings.option[drawing_settings.render]['end_color']
 
     table = ''
+
+    if drawing_settings.render == 'ansi':
+        border_color = '\033' + border_color
+        text_color = '\033' + text_color
+        info_color = '\033' + info_color
+        end_color = '\033' + end_color
+    elif drawing_settings.render == 'html':
+        border_color = '<span style="color:' + border_color + '">'
+        text_color = '<span style="color:' + text_color + '">'
+        info_color = '<span style="color:' + info_color + '">'
+        end_color = '</span>'
+    else:
+        raise Exception("unsupported render type")
+
 
     start = float(flyby_json["settings"]['start_epoch'])
     end = float(flyby_json["settings"]['end_epoch'])
@@ -140,9 +154,16 @@ def draw_box(flyby_json, entries_amount, drawing_settings):
 
     for x in range(entries_amount - entry):
         entry += 1
-        table += vertical_line + f" {str(entry).zfill(2)}. " + ' ' * (width - 5) + vertical_line + '\n'
+        table += border_color + vertical_line + text_color + f" {str(entry).zfill(2)}. " + ' ' * (width - 5) + border_color + vertical_line + '\n'
 
     table += lower_left_corner + horizontal_line * width + lower_right_corner + '\n'
 
     height = entries_amount + 4
-    return table, height
+
+    if drawing_settings.render == 'ansi':
+        return table, height
+    elif drawing_settings.render == 'html':
+        table = "<pre>" + table + "</pre>"
+        return table, height
+    else:
+        raise Exception("unsupported render type")

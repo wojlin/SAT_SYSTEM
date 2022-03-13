@@ -22,11 +22,10 @@ def draw_board(table_name, drawing_settings, first_time, add_height):
         sys.stdout.write('\n')
     elif table_name == 'flyby':
         sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
-        sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
         sats = tle_manager.read_tle(sat_file)
-        hours = int(json.loads(utils.read_file('config/setup.json'))["flyby_prediction_settings"]['hours_ahead'])
-        angle = int(json.loads(utils.read_file('config/setup.json'))["flyby_prediction_settings"]['minimal_angle'])
-        amount = int(json.loads(utils.read_file('config/setup.json'))["flyby_prediction_settings"]['display_amount'])
+        hours = int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['hours_ahead'])
+        angle = int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['minimal_angle'])
+        amount = int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['display_amount'])
         filtered_list = flyby_manager.get_flyby_filtered_list(sats, datetime.utcnow(),
                                                               datetime.utcnow() + timedelta(hours=hours), angle)
         table, height = flyby_manager.draw_box(filtered_list, amount, drawing_settings=drawing_settings)
@@ -108,8 +107,8 @@ def manage_decode():
         delete_temp = bool(json.loads(utils.read_file('config/setup.json'))["decode_settings"]['delete_temp_files'])
         temp = str(json.loads(utils.read_file('config/setup.json'))["decode_settings"]['decode_temp_path'])
         output = str(json.loads(utils.read_file('config/setup.json'))["decode_settings"]['output_dir_path'])
-        hours = int(json.loads(utils.read_file('config/setup.json'))["flyby_prediction_settings"]['hours_ahead'])
-        angle = int(json.loads(utils.read_file('config/setup.json'))["flyby_prediction_settings"]['minimal_angle'])
+        hours = int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['hours_ahead'])
+        angle = int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['minimal_angle'])
         tle_update_manager_thread = threading.Thread(target=decode_manager.decode_manager,
                                                      kwargs={'sats': sats,
                                                              "t_in": datetime.utcnow(),

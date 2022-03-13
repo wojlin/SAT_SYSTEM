@@ -1,86 +1,91 @@
 {
   "write_log": true,
-  "ground_station":
-  {
+  "ground_station": {
     "lat": 54.408010,
     "lon": 18.562690
   },
-  "tle_update":
-  {
+  "tle_update": {
     "update": true,
     "update_interval": 3600
   },
-  "console_update":
-  {
+  "console_update": {
     "map": 70,
     "flyby": 60,
     "info": 1,
     "last": 0.5
   },
-  "api_settings":
-  {
+  "api_settings": {
     "use_api": true,
     "host": "localhost",
     "port": 2137
   },
-  "flyby_prediction_settings":
-  {
-    "hours_ahead": 15,
-    "minimal_angle": 15,
-    "display_amount": 5
+  "decode_settings": {
+    "decode": true,
+    "delete_temp_files": true,
+    "decode_temp_path": "temp",
+    "output_dir_path": "output",
+    "write_metadata": true
   },
-  "decode_settings":
-  {
-      "decode": true,
-      "delete_temp_files": true,
-      "decode_temp_path": "temp",
-      "output_dir_path": "output",
-      "write_metadata": true
-  },
-  "drawing_settings":
-  {
-    "draw_satellite_path": true,
-    "satellite_path_resolution": 50,
-    "satellite_path_time_ahead": 3600,
-    "draw_day_night_cycle": true,
-    "upper_left_corner": "╔",
-    "upper_right_corner": "╗",
-    "lower_left_corner": "╚",
-    "lower_right_corner": "╝",
-    "vertical_line": "║",
-    "horizontal_line": "═",
-    "left_opener": "╣",
-    "right_opener": "╠",
-    "arrow_up": "⟰",
-    "arrow_down": "⟱",
-    "satellite": "\uD83D\uDEF0",
-    "ground_station": "o",
-    "ground_station_name": "HOME",
-    "ansi":
-    {
+  "drawing_settings": {
+    "map_config": {
+      "draw_ground_station": true,
+      "draw_day_night_cycle": true,
+      "draw_satellite_path": true,
+      "satellite_path_resolution": 50,
+      "satellite_path_time_ahead": 3600
+    },
+    "flyby_config": {
+      "hours_ahead": 15,
+      "minimal_angle": 15,
+      "display_amount": 5
+    },
+    "chars": {
+      "upper_left_corner": "╔",
+      "upper_right_corner": "╗",
+      "lower_left_corner": "╚",
+      "lower_right_corner": "╝",
+      "vertical_line": "║",
+      "horizontal_line": "═",
+      "left_opener": "╣",
+      "right_opener": "╠",
+      "arrow_up": "⟰",
+      "arrow_down": "⟱",
+      "sunset": "\uD83D\uDF84",
+      "satellite": "\uD83D\uDEF0",
+      "ground_station": "o",
+      "ground_station_name": "HOME"
+    },
+    "ansi": {
       "ground_station_color": "[1;31;40m",
       "border_color": "[38;5;38m",
       "earth_color": "[1;32;40m",
       "earth_color_night": "[1;34;40m",
       "earth_color_sunset": "[1;93;40m",
-      "earth_color_dusk": "[1;31;40m",
       "text_color": "[38;5;7m",
       "info_color": "[38;5;255m",
       "end_color": "[0m",
-      "sat_colors": ["[1;33;40m", "[1;35;40m", "[1;36;40m", "[1;37;40m"]
+      "sat_colors": [
+        "[1;33;40m",
+        "[1;35;40m",
+        "[1;36;40m",
+        "[1;37;40m"
+      ]
     },
-    "html":
-    {
+    "html": {
       "ground_station_color": "#ff0000",
       "border_color": "#00ffe5",
       "earth_color": "#46f23a",
       "earth_color_night": "#3a71f2",
-      "earth_color_sunset": "#9e380d",
-      "earth_color_dusk": "#1b529e",
+      "earth_color_sunset": "#fff200",
       "text_color": "#ababab",
       "info_color": "#ffffff",
       "end_color": "#ffffff",
-      "sat_colors": ["#ffff00", "#9000ff", "#ff00ea", "#ff0000"]
+      "sat_colors": [
+        "#ffff00",
+        "#9000ff",
+        "#ff00ea",
+        "#ff0000"
+      ]
     }
   }
 }

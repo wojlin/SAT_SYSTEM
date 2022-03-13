@@ -14,46 +14,59 @@ body
 
 h1{text-align:center;}
 
-.container > div
+.box
 {
-    border: solid 1px white;
+    margin:auto;
+    width:95%;
+    border: solid 2px white;
+    border-radius:5px;
+    position:relative;
+    display: table;
+    border-collapse: separate;
+  border-spacing: 10px;
+  background:black;
+  margin-bottom:20px;
 }
 
-#map_box
+.inner_box
 {
-    font-size:0.5vw;
+    width: 100%;
 }
 
-pre{width:100%;background:black;text-align:center;}
+pre{width:100%;background:black;text-align:left;font-size:0.850vw;margin:auto;}
 
-.container {  display: grid;
-  grid-template-columns: 0.5fr 1fr 1fr 0.7fr 0.8fr 0.5fr;
-  grid-template-rows: 0.1fr 2.1fr 1.6fr 0.8fr 0.6fr;
-  gap: 10px 10px;
-  grid-auto-flow: row;
-  grid-template-areas:
-    ". title title title title ."
-    ". map_box map_box map_box map_settings_box ."
-    ". map_box map_box map_box map_settings_box ."
-    ". flyby_box flyby_box flyby_box flyby_settings_box ."
-    ". info_box info_box info_box info_settings_box .";
-  width: 100%;
+pre > span
+{
+   display:inline-block;
+   width: 0.51vw;
+   height:0.1px;
 }
 
-.map_box { grid-area: map_box; }
+form
+{
+font-size:1vw;
+padding:10px;
+}
 
-.flyby_box { grid-area: flyby_box; }
+.number_input
+{
+    width:7ch;
+}
 
-.info_box { grid-area: info_box; }
+.settings
+{
+    display:flex;
+}
 
-.map_settings_box { grid-area: map_settings_box; }
+.settings > div
+{
+    display:inline-block;
+    height:20px;
+    margin-right:10px;
+}
 
-.flyby_settings_box { grid-area: flyby_settings_box; }
-
-.info_settings_box { grid-area: info_settings_box; }
-
-.title { grid-area: title; }
-
-
-
-
+.vert_hr
+{
+    width:1px;
+    background-color:white;
+}

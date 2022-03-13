@@ -13,11 +13,11 @@ from managers import info_manager, flyby_manager, map_manager, tle_manager, deco
 template_path = os.path.join(globals.PATH, 'templates')
 static_path = os.path.join(globals.PATH, 'static')
 app = Flask(__name__, template_folder=template_path, static_folder=static_path)
-app.logger.disabled = True
+'''app.logger.disabled = True
 log = logging.getLogger('werkzeug')
 log.disabled = True
 log.setLevel(logging.ERROR)
-logging.getLogger('werkzeug').disabled = True
+logging.getLogger('werkzeug').disabled = True'''
 
 
 def secho(text, file=None, nl=None, err=None, color=None, **styles):
@@ -35,11 +35,11 @@ sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
 sats = tle_manager.read_tle(sat_file)
 
 
-@app.errorhandler(Exception)
+'''@app.errorhandler(Exception)
 def handle_exception(e):
     if isinstance(e, HTTPException):
         globals.LOGGER.error(e)
-        return e
+        return e'''
 
 
 @app.route("/api/get_map", methods=["GET"])

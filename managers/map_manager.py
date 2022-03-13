@@ -104,25 +104,25 @@ def terminator(_width, date):
 
 
 def draw_box(satellites, drawing_settings):
-    upper_left_corner = drawing_settings.option['upper_left_corner']
-    upper_right_corner = drawing_settings.option['upper_right_corner']
-    lower_right_corner = drawing_settings.option['lower_right_corner']
-    lower_left_corner = drawing_settings.option['lower_left_corner']
-    horizontal_line = drawing_settings.option['horizontal_line']
-    vertical_line = drawing_settings.option['vertical_line']
-    left_opener = drawing_settings.option['left_opener']
-    right_opener = drawing_settings.option['right_opener']
-    satellite = drawing_settings.option['satellite']
-    arrow_up = drawing_settings.option['arrow_up']
-    arrow_down = drawing_settings.option['arrow_down']
-    ground_station = drawing_settings.option['ground_station']
-    ground_station_name = drawing_settings.option['ground_station_name']
+    upper_left_corner = drawing_settings.option["chars"]['upper_left_corner']
+    upper_right_corner = drawing_settings.option["chars"]['upper_right_corner']
+    lower_right_corner = drawing_settings.option["chars"]['lower_right_corner']
+    lower_left_corner = drawing_settings.option["chars"]['lower_left_corner']
+    horizontal_line = drawing_settings.option["chars"]['horizontal_line']
+    vertical_line = drawing_settings.option["chars"]['vertical_line']
+    left_opener = drawing_settings.option["chars"]['left_opener']
+    right_opener = drawing_settings.option["chars"]['right_opener']
+    satellite = drawing_settings.option["chars"]['satellite']
+    arrow_up = drawing_settings.option["chars"]['arrow_up']
+    arrow_down = drawing_settings.option["chars"]['arrow_down']
+    ground_station = drawing_settings.option["chars"]['ground_station']
+    ground_station_name = drawing_settings.option["chars"]['ground_station_name']
+    sunset = drawing_settings.option["chars"]['sunset']
 
     border_color = drawing_settings.option[drawing_settings.render]['border_color']
     earth_color = drawing_settings.option[drawing_settings.render]['earth_color']
     earth_color_night = drawing_settings.option[drawing_settings.render]['earth_color_night']
     earth_color_sunset = drawing_settings.option[drawing_settings.render]['earth_color_sunset']
-    earth_color_dusk = drawing_settings.option[drawing_settings.render]['earth_color_dusk']
     end_color = drawing_settings.option[drawing_settings.render]['end_color']
 
     ground_station_color = drawing_settings.option[drawing_settings.render]['ground_station_color']
@@ -132,7 +132,6 @@ def draw_box(satellites, drawing_settings):
         earth_color = '\033' + earth_color
         earth_color_night = '\033' + earth_color_night
         earth_color_sunset = '\033' + earth_color_sunset
-        earth_color_dusk = '\033' + earth_color_dusk
         end_color = '\033' + end_color
         sat_colors = ['\033' + color for color in drawing_settings.option[drawing_settings.render]['sat_colors']]
         ground_station_color = '\033' + ground_station_color
@@ -141,9 +140,9 @@ def draw_box(satellites, drawing_settings):
         earth_color = '<span style="color:' + earth_color + '">'
         earth_color_night = '<span style="color:' + earth_color_night + '">'
         earth_color_sunset = '<span style="color:' + earth_color_sunset + '">'
-        earth_color_dusk = '<span style="color:' + earth_color_dusk + '">'
         end_color = '</span>'
-        sat_colors = ['<span style="color:' + color + '">' for color in drawing_settings.option[drawing_settings.render]['sat_colors']]
+        sat_colors = ['<span style="color:' + color + '">' for color in
+                      drawing_settings.option[drawing_settings.render]['sat_colors']]
         ground_station_color = '<span style="color:' + ground_station_color + '">'
     else:
         raise Exception("unsupported render type")
@@ -164,7 +163,7 @@ def draw_box(satellites, drawing_settings):
         for line in f:
             raw_map.append([earth_char(earth_color, char, end_color) for char in list(line.rstrip("\n"))])
 
-        if json.loads(utils.read_file('config/setup.json'))["drawing_settings"]['draw_day_night_cycle'] is True:
+        if drawing_settings.option["map_config"]['draw_day_night_cycle'] is True:
             night_day = terminator(width, datetime.utcnow())
 
             for y in range(len(raw_map)):
@@ -173,38 +172,29 @@ def draw_box(satellites, drawing_settings):
                         raw_map[y][x].left_side = earth_color_night
 
             for y in range(len(raw_map)):
-                for x in range(len(raw_map[y])-2):
-                    if int(night_day[y][x]) == 1 and int(night_day[y][x+2]) == 0:
-                        raw_map[y][x].left_side = earth_color_dusk
-
-            for y in range(len(raw_map)):
-                for x in range(len(raw_map[y])-2):
-                    if int(night_day[y][x]) == 0 and int(night_day[y][x+2]) == 1:
+                for x in range(len(raw_map[y]) - 1):
+                    if int(night_day[y][x]) == 0 and int(night_day[y][x + 1]) == 1:
                         raw_map[y][x].left_side = earth_color_sunset
+                        raw_map[y][x].center = sunset
 
             for y in range(len(raw_map)):
-                for x in range(len(raw_map[y])-4):
-                    if int(night_day[y][x+2]) == 1 and int(night_day[y][x+4]) == 0:
+                for x in range(len(raw_map[y]) - 1):
+                    if int(night_day[y][x]) == 1 and int(night_day[y][x + 1]) == 0:
                         raw_map[y][x].left_side = earth_color_sunset
+                        raw_map[y][x].center = sunset
 
-            for y in range(len(raw_map)):
-                for x in range(len(raw_map[y])-4):
-                    if int(night_day[y][x+2]) == 0 and int(night_day[y][x+4]) == 1:
-                        raw_map[y][x].left_side = earth_color_dusk
-
-        raw_map = draw_point(drawing_settings, raw_map, globals.POS["lat"], globals.POS["lon"], ground_station,
-                             ground_station_color,
-                             name=ground_station_name)
+        if drawing_settings.option["map_config"]['draw_ground_station']:
+            raw_map = draw_point(drawing_settings, raw_map, globals.POS["lat"], globals.POS["lon"], ground_station,
+                                 ground_station_color,
+                                 name=ground_station_name)
 
         colors = sat_colors
         current_color = 0
 
-        if json.loads(utils.read_file('config/setup.json'))["drawing_settings"]['draw_satellite_path'] is True:
+        if drawing_settings.option["map_config"]['draw_satellite_path'] is True:
             for sat in sats_buffer:
-                resolution = int(
-                    json.loads(utils.read_file('config/setup.json'))["drawing_settings"]['satellite_path_resolution'])
-                ahead = int(
-                    json.loads(utils.read_file('config/setup.json'))["drawing_settings"]['satellite_path_time_ahead'])
+                resolution = int(drawing_settings.option["map_config"]['satellite_path_resolution'])
+                ahead = int(drawing_settings.option["map_config"]['satellite_path_time_ahead'])
                 path_points = sat.get_position_path(datetime.utcnow(), datetime.utcnow() + timedelta(seconds=ahead),
                                                     resolution)
                 for point in path_points:

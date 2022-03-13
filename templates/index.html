@@ -3,19 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <title>SAT SYSTEM</title>
-    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/page.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/page.css') }}">
 </head>
 <body>
 
-    <div class="container">
-      <div id="map_box" class="map_box"></div>
-      <div class="flyby_box"></div>
-      <div class="info_box"></div>
-      <div class="map_settings_box"></div>
-      <div class="flyby_settings_box"></div>
-      <div class="info_settings_box"></div>
-      <div class="title"><h1>SAT SYSTEM</h1></div>
+<div class="container">
+    <div id="title" class="title"><h1>SAT SYSTEM</h1></div>
+    <div id="map" class="box">
+        <div id="map_box" class="inner_box"></div>
+        <div class="inner_box">
+            <form id="map_form" class="settings">
+                <div>
+                  <input onchange="get_map();" type="checkbox" id="draw_ground_station" name="draw_ground_station" checked>
+                  <label for="draw_ground_station">draw ground station</label>
+                </div>
+                <div class="vert_hr"></div>
+                <div>
+                  <input onchange="get_map();" type="checkbox" id="draw_day_night_cycle" name="draw_day_night_cycle" checked>
+                  <label for="draw_day_night_cycle">day/night cycle</label>
+                </div>
+                <div class="vert_hr"></div>
+                <div>
+                  <input onchange="get_map();" type="checkbox" id="draw_satellite_path" name="draw_satellite_path" checked>
+                  <label for="draw_satellite_path">draw satellite path</label>
+                </div>
+                <div>
+                  <input onchange="get_map();" class="number_input" type="number" min="0" max="1000" value="50" id="satellite_path_resolution" name="satellite_path_resolution">
+                  <label for="satellite_path_resolution">path resolution</label>
+                </div>
+                <div>
+                  <input onchange="get_map();" class="number_input" type="number" min="0" max="10000" value="3600" id="satellite_path_time_ahead" name="satellite_path_time_ahead">
+                  <label for="satellite_path_time_ahead">path time ahead</label>
+                </div>
+                <div class="vert_hr"></div>
+            </form>
+        </div>
     </div>
-    <script src="{{url_for('static', filename='js/get_map.js')}}"></script>
+    <div id="flyby" class="box">
+        <div id="flyby_box" class="inner_box"></div>
+        <div class="inner_box">
+            <form id="flyby_form" class="settings">
+                <div>
+                  <input onchange="get_flyby();" type="number" min="0" max="10000" value="12" id="hours_ahead" name="hours_ahead">
+                  <label for="hours_ahead">hours ahead</label>
+                </div>
+                <div class="vert_hr"></div>
+                <div>
+                  <input onchange="get_flyby();" type="number" min="0" max="90" value="25" id="minimal_angle" name="minimal_angle">
+                  <label for="minimal_angle">minimal angle</label>
+                </div>
+                <div class="vert_hr"></div>
+                <div>
+                  <input onchange="get_flyby();" type="number" min="0" max="100" value="5" id="display_amount" name="display_amount">
+                  <label for="display_amount">display amount</label>
+                </div>
+                <div class="vert_hr"></div>
+            </form>
+        </div>
+    </div>
+    <div id="info" class="box">
+        <div id="info_box" class="inner_box"></div>
+    </div>
+</div>
+<script src="{{url_for('static', filename='js/get_map.js')}}"></script>
+<script src="{{url_for('static', filename='js/get_flyby.js')}}"></script>
+<script src="{{url_for('static', filename='js/get_info.js')}}"></script>
 </body>
 </html>

@@ -7,7 +7,14 @@ import sys
 
 import globals
 import utils
-from managers import info_manager, flyby_manager, map_manager, tle_manager, decode_manager, logging_manager, api_manager
+from managers import info_manager,\
+    flyby_manager,\
+    map_manager,\
+    tle_manager,\
+    decode_manager,\
+    logging_manager,\
+    api_manager,\
+    status_manager
 
 
 def draw_board(table_name, drawing_settings, first_time, add_height):
@@ -43,20 +50,14 @@ def draw_board(table_name, drawing_settings, first_time, add_height):
                 sys.stdout.write("\033[F\033[K")
         sys.stdout.write(table)
         sys.stdout.write('\n')
-    elif table_name == 'last':
+    elif table_name == 'status':
         height = 1
         for i in range(height + add_height):
             sys.stdout.write("\033[F\033[K")
 
-        spaces = [100, 20]
+        table, height = status_manager.draw_box(drawing_settings=drawing_settings)
 
-        text_buffer = utils.add_col(f"LAST ACTION: {globals.LAST_ACTION}", spaces[0]) + \
-                      utils.add_col(f"RADIO:", spaces[1])
-        target = f"http://{globals.HOST}:{globals.PORT}"
-        server = f"SERVER: \u001b]8;;{target}\u001b\\{target}\u001b]8;;\u001b\\"
-        text_buffer += (' ' * (globals.WIDTH - len(text_buffer) - len(target) - len("SERVER:")) + server)
-
-        sys.stdout.write(str(text_buffer + '\n'))
+        sys.stdout.write(str(table + '\n'))
 
     else:
         raise Exception("module does not exist")
@@ -76,7 +77,7 @@ def manage_box_drawing(drawing_settings):
     heights = [['map', draw_board('map', drawing_settings, first_time=True, add_height=0)],
                ['flyby', draw_board('flyby', drawing_settings, first_time=True, add_height=0)],
                ['info', draw_board('info', drawing_settings, first_time=True, add_height=0)],
-               ['last', draw_board('last', drawing_settings, first_time=True, add_height=0)]]
+               ['status', draw_board('status', drawing_settings, first_time=True, add_height=0)]]
 
     timeouts_load = json.loads(utils.read_file('config/setup.json'))["console_update"]
     timeouts = json.loads(utils.read_file('config/setup.json'))["console_update"]

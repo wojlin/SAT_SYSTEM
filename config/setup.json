@@ -12,7 +12,7 @@
     "map": 70,
     "flyby": 60,
     "info": 1,
-    "last": 0.5
+    "status": 0.5
   },
   "api_settings": {
     "use_api": true,

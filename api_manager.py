@@ -1,14 +1,20 @@
 from werkzeug.exceptions import HTTPException
-from flask import Flask, render_template, request
+from os import listdir
+from os.path import isfile, join
+from flask import Flask, render_template, request, jsonify, send_file
 from datetime import datetime, timedelta
+from PIL import Image
+from PIL.PngImagePlugin import PngInfo
 import logging
+from io import BytesIO
 import click
 import os
 import ast
 
 import globals
 import utils
-from managers import info_manager, flyby_manager, map_manager, tle_manager, decode_manager, logging_manager, status_manager
+from managers import info_manager, flyby_manager, map_manager, tle_manager, decode_manager, logging_manager, \
+    status_manager
 
 template_path = os.path.join(globals.PATH, 'templates')
 static_path = os.path.join(globals.PATH, 'static')
@@ -90,6 +96,37 @@ def get_status_box():
     options = globals.HTML_DRAWING_SETTINGS
     status_box = status_manager.draw_box(drawing_settings=options)
     return str(status_box[0])
+
+
+@app.route("/api/get_images_list", methods=["GET"])
+def get_images_list():
+    options_keys = request.args
+
+    path = globals.OUTPUT
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+    sorted_files = sorted(files, key=lambda x: str(x), reverse=True)[:int(options_keys["show_x_first"])]
+    return_json = {}
+    for f in range(len(sorted_files)):
+        return_json[f] = sorted_files[f]
+    return jsonify(return_json)
+
+
+@app.route("/api/get_image_thumbnail", methods=["GET"])
+def get_image_thumbnail():
+    path = globals.OUTPUT
+    options_keys = request.args
+    print(options_keys)
+
+    filename = options_keys['name']
+    img = Image.open(os.path.join(path, filename))
+    img = img.convert('RGB')
+    width, height = img.size
+    img = img.resize((width // 10, height // 10))
+
+    img_io = BytesIO()
+    img.save(img_io, 'JPEG', quality=70)
+    img_io.seek(0)
+    return send_file(img_io, mimetype='image/jpeg')
 
 
 @app.route("/")

@@ -107,7 +107,9 @@ def get_images_list():
     sorted_files = sorted(files, key=lambda x: str(x), reverse=True)[:int(options_keys["show_x_first"])]
     return_json = {}
     for f in range(len(sorted_files)):
-        return_json[f] = sorted_files[f]
+        return_json[f] = {"filename": sorted_files[f],
+                          "date": ' '.join(str(sorted_files[f]).split(' ')[:2]),
+                          "sat_name": ' '.join(str(sorted_files[f]).split(' ')[2:]).split('.')[0]}
     return jsonify(return_json)
 
 
@@ -115,7 +117,6 @@ def get_images_list():
 def get_image_thumbnail():
     path = globals.OUTPUT
     options_keys = request.args
-    print(options_keys)
 
     filename = options_keys['name']
     img = Image.open(os.path.join(path, filename))
@@ -127,6 +128,32 @@ def get_image_thumbnail():
     img.save(img_io, 'JPEG', quality=70)
     img_io.seek(0)
     return send_file(img_io, mimetype='image/jpeg')
+
+
+@app.route("/api/get_image", methods=["GET"])
+def get_image():
+    path = globals.OUTPUT
+    options_keys = request.args
+
+    filename = options_keys['name']
+    img = Image.open(os.path.join(path, filename))
+    img = img.convert('RGB')
+    img_io = BytesIO()
+    img.save(img_io, 'JPEG', quality=70)
+    img_io.seek(0)
+    return send_file(img_io, mimetype='image/jpeg')
+
+
+@app.route("/api/get_image_metadata", methods=["GET"])
+def get_image_metadata():
+    path = globals.OUTPUT
+    options_keys = request.args
+
+    filename = options_keys['name']
+    img = Image.open(os.path.join(path, filename))
+    json_obj = ast.literal_eval(img.text["sat_data"])
+    print(json_obj)
+    return str(img.text["sat_data"])
 
 
 @app.route("/")

@@ -109,6 +109,14 @@
         </div>
     </div>
 </div>
+<div id="image_viewer">
+    <div id="image_viewer_box"><img id="image_viewer_box_image" src="" alt="image"/></div>
+    <div id="image_viewer_description"></div>
+    <div id="image_viewer_captions"><p id="image_viewer_captions_filename">empty empty empty</p></div>
+    <div id="image_viewer_arrow_left"></div>
+    <div id="image_viewer_arrow_right"></div>
+    <div id="image_viewer_close" onclick="document.getElementById('image_viewer').style.display = 'none'"></div>
+</div>
 <script src="{{url_for('static', filename='js/get_map.js')}}"></script>
 <script src="{{url_for('static', filename='js/get_flyby.js')}}"></script>
 <script src="{{url_for('static', filename='js/get_info.js')}}"></script>

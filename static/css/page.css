@@ -10,6 +10,7 @@ body
     color:white;
     background-color:black;
     font-family: SourceCodePro-Regular;
+    overflow: hidden;
 }
 
 h1{text-align:center;}
@@ -179,11 +180,13 @@ padding:10px;
 .item {
   color: #fff;
   border-radius: 8px;
-  font-size: 1vh;
+  font-size: 1.2vh;
   text-shadow: 0 2px 1px rgba(0, 0, 0, 0.4);
   box-shadow: 0 2px 1px rgba(0, 0, 0, 1);
   border: solid 1px white;
   position:relative;
+  background-color:#262626;
+  cursor:pointer;
 }
 
 .item:not(:last-child) {
@@ -196,10 +199,14 @@ padding:10px;
 
 .gallery_image
 {
-    width: 20vh;
+    width: 18vh;
     height:auto;
+    max-height:18vh;
     margin:auto;
     display:block;
+    margin-top:15px;
+
+
 }
 
 .gallery_name
@@ -208,6 +215,140 @@ padding:10px;
     display:block;
     margin:auto;
     text-align:center;
+}
+
+.gallery_name_div
+{
     position:absolute;
     bottom:5px;
+    width:100%;
+}
+
+
+
+.item:hover {
+
+transform: scale(1.05);
+
+}
+.item {
+
+transition: transform .25s ease;
+
+}
+
+
+#image_viewer
+{
+    position:absolute;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+    margin:0;
+    background-color: rgba(40,40,40,0.9);
+    z-index:100;
+    display:none;
+}
+
+#image_viewer_box
+{
+    position:absolute;
+    top:5vh;
+    left:50%;
+    transform: translate(-50%, 0);
+    width:40%;
+    bottom:10vh;
+}
+
+#image_viewer_captions
+{
+    position:absolute;
+    height:5vh;
+    top:3vh;
+    padding-left:15px;
+    padding-right:15px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    background-color:black;
+}
+
+#image_viewer_description
+{
+    position:absolute;
+    top:50vh;
+    transform: translate(0, -50%);
+    left:5%;
+    right:78%;
+    background-color:#1a1a1a;
+    border:solid 2px white;
+    border-radius:15px;
+
+}
+
+#image_viewer_captions_filename
+{
+    font-size:2vh;
+    line-height:1vh;
+    color:white;
+    text-align:center;
+}
+
+#image_viewer_box_image
+{
+    width:100%;
+    height:auto;
+    position: relative;
+  top: 50%;
+  transform: scale(1) translateY(-50%);
+  transform-origin: center center;
+  cursor:grab;
+}
+
+#image_viewer_close
+{
+    position:absolute;
+    height:4vh;
+    width:4vh;
+    top:3vh;
+    right:3vh;
+    cursor:pointer;
+
+}
+
+#image_viewer_close:after
+{
+    content: "\274c";
+    color: white;
+    font-size: 4vh;
+    line_height:4vh;
+}
+
+.code_block
+{
+    background-color:#333333;
+    color:white;
+    font-size:0.5vw;
+    overflow-x: auto;
+}
+
+.space_block > p
+{
+ margin-top:0.5vh;
+ margin-bottom:0.5vh;
+}
+
+.space_block
+{
+    font-size:0.7vw;
+    background: none !important;
+}
+
+#description_list
+{
+
+    margin:0;
+    padding:10px;
+    font-size:0.7vw;
+
 }

@@ -45,11 +45,15 @@ def write_file(_path, text):
 
 
 def get_utc_offset():
-    offset = -time.timezone
+    """
+    this function generates a stamp with information on how far local time is from utc time
+    :return: string with timestamp
+    """
+    offset = -(datetime.utcnow().hour - datetime.now().hour)
     mark = ''
     if offset > 0:
         mark = '+'
-    return f"{mark}{int(offset / 3600)}"
+    return f"{mark}{int(offset)}"
 
 
 def utc_to_lc(utc_time):

@@ -21,10 +21,26 @@ class earth_char:
         return str(self.left_side + self.center + self.right_side)
 
 
-def draw_point(drawing_settings, raw_map, lat_point, lon_point, char, color, **kwargs):
+def draw_point(drawing_settings: globals.options, raw_map: list, position: tuple, char: str, color: str, **kwargs):
+    """
+    this function creates point on map. It's capable of drawing name, direction and custom symbol as well
+    :param drawing_settings: dict that contain information on how to draw map
+    :param raw_map: list that contain map
+    :param position: tuple of y and x coordinates
+    :param char: char that will be displayed at that point
+    :param color: color of symbol, can be hex or ansi
+    :param kwargs: other parmeters like name of point or direction
+    :return: raw_map with new point drawn on it
+    """
     global height, width
 
-    if drawing_settings.render == 'ansi':
+    arrow_up = drawing_settings.option["chars"]['arrow_up']
+    arrow_down = drawing_settings.option["chars"]['arrow_down']
+
+    lat_point = position[0]
+    lon_point = position[1]
+
+    if drawing_settings.render == 'ansi':  # checking what draw mode was selected
         end_color = '\033' + drawing_settings.option[drawing_settings.render]['end_color']
     elif drawing_settings.render == 'html':
         end_color = '</span>'
@@ -35,7 +51,8 @@ def draw_point(drawing_settings, raw_map, lat_point, lon_point, char, color, **k
     lat = 0
     name = ''
     direction = ''
-    for arg in kwargs:
+
+    for arg in kwargs:  # checking additional options
         if arg == "name":
             name = kwargs[arg]
         if arg == "direction":
@@ -47,25 +64,30 @@ def draw_point(drawing_settings, raw_map, lat_point, lon_point, char, color, **k
                 if -180 + lon <= math.floor(float(lon_point)) <= -180 + lon + int(180 / width):
                     y_raw_map = list(raw_map[y])
                     y_raw_map[x] = earth_char(color, char, end_color)
+
+                    """ drawing name """
                     if name != '':
-                        for c in range(len(name)):
-                            if 2 + x + c >= width:
-                                i = width - (x + c)
-                                y_raw_map[i] = earth_char(color, name[c], end_color)
+                        space = 0
+                        for character in range(len(name)):
+                            if 2 + x + character >= width:  # start from left if name is outside bounds
+                                y_raw_map[space] = earth_char(color, name[character], end_color)
+                                space += 1
                             else:
-                                y_raw_map[2 + x + c] = earth_char(color, name[c], end_color)
+                                y_raw_map[2 + x + character] = earth_char(color, name[character], end_color)
+
+                    """ drawing direction arrow """
                     if direction != '':
-                        if direction == "⟰":
+                        if direction == "up":
                             if y + 2 > 0:
                                 y_arrow_raw_map = list(raw_map[y - 1])
-                                y_arrow_raw_map[x] = earth_char(color, '⟰', end_color)
+                                y_arrow_raw_map[x] = earth_char(color, arrow_up, end_color)
                                 raw_map[y - 1] = y_arrow_raw_map
                         else:
                             if y + 2 < height:
                                 y_arrow_raw_map = list(raw_map[y + 1])
-                                y_arrow_raw_map[x] = earth_char(color, '⟱', end_color)
+                                y_arrow_raw_map[x] = earth_char(color, arrow_down, end_color)
                                 raw_map[y + 1] = y_arrow_raw_map
-                        pass
+
                     raw_map[y] = y_raw_map
                 lon += int(360 / width)
         lat += int(180 / height)
@@ -79,7 +101,7 @@ def terminator(_width: int, date: datetime):
     :param date: current date object input
     :return: 2d matrix of point where zero represents night and one represents day
     """
-    
+
     """
     The solar altitude angle measured at noon will differ from the corresponding
     equinoctial angle by an angle of up to ± 23° 17'. This angle is called the solar declination.
@@ -92,7 +114,7 @@ def terminator(_width: int, date: datetime):
     where d is number of day in year
     """
 
-    declination = (23 + 27/60) * math.sin(((360 * date.timetuple().tm_yday) / 365.25) * (np.pi / 180))
+    declination = (23 + 27 / 60) * math.sin(((360 * date.timetuple().tm_yday) / 365.25) * (np.pi / 180))
 
     """
     our angle, in astronomy, the angle between an observer’s meridian
@@ -101,7 +123,7 @@ def terminator(_width: int, date: datetime):
     This angle, when expressed in hours and minutes, is the time elapsed since the celestial body’s last transit
     of the observer’s meridian. The hour angle can also be expressed in degrees, 15° of arc being equal to one hour.
     """
-    
+
     hour_angle = 360 * (date.hour / 24)
 
     twilight_degree = -25  # bias because sunset does not mean that its dark outside
@@ -124,11 +146,13 @@ def terminator(_width: int, date: datetime):
     if declination > 0:
         day_night = np.zeros(n_lon_2.shape, np.int)
         for _width in range(_width):
-            day_night[:, _width] = np.where(n_lat_2[:, _width] < lats[_width] + twilight_degree, 1, day_night[:, _width])
+            day_night[:, _width] = np.where(n_lat_2[:, _width] < lats[_width] + twilight_degree, 1,
+                                            day_night[:, _width])
     else:
         day_night = np.ones(n_lon_2.shape, np.int)
         for _width in range(_width):
-            day_night[:, _width] = np.where(n_lat_2[:, _width] < lats[_width] + twilight_degree, 0, day_night[:, _width])
+            day_night[:, _width] = np.where(n_lat_2[:, _width] < lats[_width] + twilight_degree, 0,
+                                            day_night[:, _width])
 
     return day_night
 
@@ -143,8 +167,6 @@ def draw_box(satellites, drawing_settings):
     left_opener = drawing_settings.option["chars"]['left_opener']
     right_opener = drawing_settings.option["chars"]['right_opener']
     satellite = drawing_settings.option["chars"]['satellite']
-    arrow_up = drawing_settings.option["chars"]['arrow_up']
-    arrow_down = drawing_settings.option["chars"]['arrow_down']
     ground_station = drawing_settings.option["chars"]['ground_station']
     ground_station_name = drawing_settings.option["chars"]['ground_station_name']
     sunset = drawing_settings.option["chars"]['sunset']
@@ -214,7 +236,7 @@ def draw_box(satellites, drawing_settings):
                         raw_map[y][x].center = sunset
 
         if drawing_settings.option["map_config"]['draw_ground_station']:
-            raw_map = draw_point(drawing_settings, raw_map, globals.POS["lat"], globals.POS["lon"], ground_station,
+            raw_map = draw_point(drawing_settings, raw_map, (globals.POS["lat"], globals.POS["lon"]), ground_station,
                                  ground_station_color,
                                  name=ground_station_name)
 
@@ -228,8 +250,8 @@ def draw_box(satellites, drawing_settings):
                 path_points = sat.get_position_path(datetime.utcnow(), datetime.utcnow() + timedelta(seconds=ahead),
                                                     resolution)
                 for point in path_points:
-                    l_raw_map = draw_point(drawing_settings, raw_map, path_points[point]["lat"],
-                                           path_points[point]["lon"], "'",
+                    l_raw_map = draw_point(drawing_settings, raw_map, (path_points[point]["lat"],
+                                                                       path_points[point]["lon"]), "'",
                                            colors[current_color])
                     raw_map = l_raw_map
 
@@ -239,13 +261,14 @@ def draw_box(satellites, drawing_settings):
                 raw_map = l_raw_map
 
         current_color = 0
+
         for sat in sats_buffer:
             l_sat = sat.get_json()
-            l_raw_map = draw_point(drawing_settings, raw_map, l_sat["position"]['lat'], l_sat["position"]['lon'],
+            l_raw_map = draw_point(drawing_settings, raw_map, (l_sat["position"]['lat'], l_sat["position"]['lon']),
                                    satellite,
                                    colors[current_color],
                                    name=l_sat["name"],
-                                   direction=str(arrow_up if l_sat["direction"] == "up" else arrow_down))
+                                   direction=l_sat["direction"])
 
             current_color += 1
             if current_color >= len(colors):

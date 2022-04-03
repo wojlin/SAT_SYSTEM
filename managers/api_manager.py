@@ -1,14 +1,20 @@
 from werkzeug.exceptions import HTTPException
-from flask import Flask, render_template, request
+from os import listdir
+from os.path import isfile, join
+from flask import Flask, render_template, request, jsonify, send_file
 from datetime import datetime, timedelta
+from PIL import Image
+from PIL.PngImagePlugin import PngInfo
 import logging
+from io import BytesIO
 import click
 import os
 import ast
 
 import globals
 import utils
-from managers import info_manager, flyby_manager, map_manager, tle_manager, decode_manager, logging_manager
+from managers import info_manager, flyby_manager, map_manager, tle_manager, decode_manager, logging_manager, \
+    status_manager
 
 template_path = os.path.join(globals.PATH, 'templates')
 static_path = os.path.join(globals.PATH, 'static')
@@ -34,7 +40,6 @@ click.secho = secho
 sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
 sats = tle_manager.read_tle(sat_file)
 
-
 @app.errorhandler(Exception)
 def handle_exception(e):
     if isinstance(e, HTTPException):
@@ -54,7 +59,7 @@ def get_map_box():
         else:
             options.option["map_config"][key] = options_keys[key]
     map_box = map_manager.draw_box(sats, options)
-    return map_box
+    return str(map_box[0])
 
 
 @app.route("/api/get_flyby", methods=["GET"])
@@ -71,10 +76,11 @@ def get_flyby_box():
     hours = int(options.option["flyby_config"]['hours_ahead'])
     angle = int(options.option["flyby_config"]['minimal_angle'])
     amount = int(options.option["flyby_config"]['display_amount'])
-    filtered_list = flyby_manager.get_flyby_filtered_list(sats, datetime.utcnow(), datetime.utcnow() + timedelta(hours=hours), angle)
+    filtered_list = flyby_manager.get_flyby_filtered_list(sats, datetime.utcnow(),
+                                                          datetime.utcnow() + timedelta(hours=hours), angle)
     flyby_box = flyby_manager.draw_box(filtered_list, amount, drawing_settings=options)
 
-    return flyby_box
+    return str(flyby_box[0])
 
 
 @app.route("/api/get_info", methods=["GET"])
@@ -82,12 +88,77 @@ def get_info_box():
     options = globals.HTML_DRAWING_SETTINGS
     info_box = info_manager.draw_box(sats, drawing_settings=options)
 
-    return info_box
+    return str(info_box[0])
+
+
+@app.route("/api/get_status", methods=["GET"])
+def get_status_box():
+    options = globals.HTML_DRAWING_SETTINGS
+    status_box = status_manager.draw_box(drawing_settings=options)
+    return str(status_box[0])
+
+
+@app.route("/api/get_images_list", methods=["GET"])
+def get_images_list():
+    options_keys = request.args
+
+    path = globals.OUTPUT
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+    sorted_files = sorted(files, key=lambda x: str(x), reverse=True)[:int(options_keys["show_x_first"])]
+    return_json = {}
+    for f in range(len(sorted_files)):
+        return_json[f] = {"filename": sorted_files[f],
+                          "date": ' '.join(str(sorted_files[f]).split(' ')[:2]),
+                          "sat_name": ' '.join(str(sorted_files[f]).split(' ')[2:]).split('.')[0]}
+    return jsonify(return_json)
+
+
+@app.route("/api/get_image_thumbnail", methods=["GET"])
+def get_image_thumbnail():
+    path = globals.OUTPUT
+    options_keys = request.args
+
+    filename = options_keys['name']
+    img = Image.open(os.path.join(path, filename))
+    img = img.convert('RGB')
+    width, height = img.size
+    img = img.resize((width // 10, height // 10))
+
+    img_io = BytesIO()
+    img.save(img_io, 'JPEG', quality=70)
+    img_io.seek(0)
+    return send_file(img_io, mimetype='image/jpeg')
+
+
+@app.route("/api/get_image", methods=["GET"])
+def get_image():
+    path = globals.OUTPUT
+    options_keys = request.args
+
+    filename = options_keys['name']
+    img = Image.open(os.path.join(path, filename))
+    img = img.convert('RGB')
+    img_io = BytesIO()
+    img.save(img_io, 'JPEG', quality=70)
+    img_io.seek(0)
+    return send_file(img_io, mimetype='image/jpeg')
+
+
+@app.route("/api/get_image_metadata", methods=["GET"])
+def get_image_metadata():
+    path = globals.OUTPUT
+    options_keys = request.args
+
+    filename = options_keys['name']
+    img = Image.open(os.path.join(path, filename))
+    #json_obj = ast.literal_eval(img.text["sat_data"])
+    #print(json_obj)
+    return str(img.text["sat_data"])
 
 
 @app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template('index.html', host=globals.HOST, port=globals.PORT)
 
 
 def start_api():
@@ -98,4 +169,4 @@ def start_api():
 
 
 if __name__ == "__main__":
-    app.run(globals.HOST, globals.PORT, True)
+    app.run(globals.HOST, globals.PORT, False)

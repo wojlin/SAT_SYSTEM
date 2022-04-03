@@ -9,6 +9,9 @@ height = globals.HEIGHT
 
 
 class earth_char:
+    """
+    class that contain information about what is left side of char, char, right side of char
+    """
     def __init__(self, left, center, right):
         self.left_side = left
         self.center = center
@@ -24,7 +27,7 @@ class earth_char:
 def draw_point(drawing_settings: globals.options, raw_map: list, position: tuple, char: str, color: str, **kwargs):
     """
     this function creates point on map. It's capable of drawing name, direction and custom symbol as well
-    :param drawing_settings: dict that contain information on how to draw map
+    :param drawing_settings: class options that contain information on how to draw map
     :param raw_map: list that contain map
     :param position: tuple of y and x coordinates
     :param char: char that will be displayed at that point
@@ -157,7 +160,15 @@ def terminator(_width: int, date: datetime):
     return day_night
 
 
-def draw_box(satellites, drawing_settings):
+def draw_box(satellites: list, drawing_settings: globals.options):
+    """
+    this function draws the map using the drawing settings and list of sattelites
+    :param satellites: list that contains satellite classes
+    :param drawing_settings: class options that contains drawing settings
+    :return: string with map drawn on it
+    """
+
+    """defining shorter name for options parameters"""
     upper_left_corner = drawing_settings.option["chars"]['upper_left_corner']
     upper_right_corner = drawing_settings.option["chars"]['upper_right_corner']
     lower_right_corner = drawing_settings.option["chars"]['lower_right_corner']
@@ -170,15 +181,14 @@ def draw_box(satellites, drawing_settings):
     ground_station = drawing_settings.option["chars"]['ground_station']
     ground_station_name = drawing_settings.option["chars"]['ground_station_name']
     sunset = drawing_settings.option["chars"]['sunset']
-
     border_color = drawing_settings.option[drawing_settings.render]['border_color']
     earth_color = drawing_settings.option[drawing_settings.render]['earth_color']
     earth_color_night = drawing_settings.option[drawing_settings.render]['earth_color_night']
     earth_color_sunset = drawing_settings.option[drawing_settings.render]['earth_color_sunset']
     end_color = drawing_settings.option[drawing_settings.render]['end_color']
-
     ground_station_color = drawing_settings.option[drawing_settings.render]['ground_station_color']
 
+    """changing the content of variables depending on the drawing mode"""
     if drawing_settings.render == 'ansi':
         border_color = '\033' + border_color
         earth_color = '\033' + earth_color
@@ -199,11 +209,10 @@ def draw_box(satellites, drawing_settings):
     else:
         raise Exception("unsupported render type")
 
+    """drawing map"""
     sats_buffer = satellites
-
     table = ''
-
-    with open('config/cli_earth', 'r') as f:
+    with open('config/cli_earth', 'r') as f:  # reading file that contain ascii art with world map
 
         name = f"{left_opener} satellite map {right_opener}"
         half_len = int(len(name) / 2)
@@ -283,6 +292,8 @@ def draw_box(satellites, drawing_settings):
             lower_right_corner + end_color + '\n')
 
     map_height = height + 2
+
+    f.close()
 
     if drawing_settings.render == 'ansi':
         return table, map_height

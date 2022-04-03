@@ -254,11 +254,10 @@ transition: transform .25s ease;
 #image_viewer_box
 {
     position:absolute;
-    top:5vh;
+    top:50vh;
     left:50%;
     transform: translate(-50%, 0);
     width:40%;
-    bottom:10vh;
 }
 
 #image_viewer_captions
@@ -301,7 +300,7 @@ transition: transform .25s ease;
     position: relative;
   top: 50%;
   transform: scale(1) translateY(-50%);
-  transform-origin: center center;
+  transform-origin: top;
   cursor:grab;
 }
 

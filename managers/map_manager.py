@@ -1,9 +1,6 @@
 import math
-import json
-import utils
 import numpy as np
 from datetime import datetime, timedelta
-from skyfield.api import load
 
 import globals
 
@@ -75,32 +72,65 @@ def draw_point(drawing_settings, raw_map, lat_point, lon_point, char, color, **k
     return raw_map
 
 
-def terminator(_width, date):
-    ts = load.timescale()
-    t = ts.utc(date.year, date.month, date.day, date.hour, date.minute, date.second)
-    eph = load('de421.bsp')
-    astrometric = eph['earth'].at(t).observe(eph['sun'])
-    ra, dec, distance = astrometric.radec()
+def terminator(_width: int, date: datetime):
+    """
+    this function is used to create map showing where on earth is day and where is night
+    :param _width: 
+    :param date: current date object input
+    :return: 2d matrix of point where zero represents night and one represents day
+    """
+    
+    """
+    The solar altitude angle measured at noon will differ from the corresponding
+    equinoctial angle by an angle of up to ± 23° 17'. This angle is called the solar declination.
+    It is defined as the angular distance from the zenith of the observer at the equator and the sun at solar noon.
+    It is positive when it is north and negative when it is south. The declination reaches its maximum value, +23° 17',
+    on 21 June (the summer solstice in the northern hemisphere, the winter solstice in the southern hemisphere).
+    The minimum value, −23° 27', is reached on 20 December. The declination, in degrees,
+    for any given day may be calculated in first approximation with the equation:
+    δ=(23+27/60)sin((360*d/365.25)deg)
+    where d is number of day in year
+    """
 
-    dec = dec.degrees
-    ra = 360 * (date.hour / 24)
-    nlons = _width
-    nlats = int(((nlons - 1) / 2) + 1)
+    declination = (23 + 27/60) * math.sin(((360 * date.timetuple().tm_yday) / 365.25) * (np.pi / 180))
 
+    """
+    our angle, in astronomy, the angle between an observer’s meridian
+    (a great circle passing over his head and through the celestial poles) and the hour circle
+    (any other great circle passing through the poles) on which some celestial body lies.
+    This angle, when expressed in hours and minutes, is the time elapsed since the celestial body’s last transit
+    of the observer’s meridian. The hour angle can also be expressed in degrees, 15° of arc being equal to one hour.
+    """
+    
+    hour_angle = 360 * (date.hour / 24)
+
+    twilight_degree = -25  # bias because sunset does not mean that its dark outside
+
+    """
+    the magic that creates the map of the day and night 
+    (I don't understand how it works but it works so I guess it's okay)
+    """
+
+    _height = int(((_width - 1) / 2) + 1)
     dg2rad = np.pi / 180.
-    lons = np.linspace(-180, 180, nlons)
-    longitude = lons + ra
-    lats = np.arctan(-np.cos(longitude * dg2rad) / np.tan(dec * dg2rad)) / dg2rad
+    n_lon = np.linspace(-180, 180, _width)
+    longitude = n_lon + hour_angle
+    lats = np.arctan(-np.cos(longitude * dg2rad) / np.tan(declination * dg2rad)) / dg2rad
 
-    lons2 = np.linspace(-180, 180, nlons)
-    lats2 = np.linspace(-90, 90, nlats)
-    lons2, lats2 = np.meshgrid(lons2, lats2)
-    daynight = np.ones(lons2.shape, np.int)
+    n_lon_2 = np.linspace(-180, 180, _width)
+    n_lat_2 = np.linspace(-90, 90, _height)
+    n_lon_2, n_lat_2 = np.meshgrid(n_lon_2, n_lat_2)
 
-    for nlon in range(nlons):
-        daynight[:, nlon] = np.where(lats2[:, nlon] < lats[nlon], 0, daynight[:, nlon])
+    if declination > 0:
+        day_night = np.zeros(n_lon_2.shape, np.int)
+        for _width in range(_width):
+            day_night[:, _width] = np.where(n_lat_2[:, _width] < lats[_width] + twilight_degree, 1, day_night[:, _width])
+    else:
+        day_night = np.ones(n_lon_2.shape, np.int)
+        for _width in range(_width):
+            day_night[:, _width] = np.where(n_lat_2[:, _width] < lats[_width] + twilight_degree, 0, day_night[:, _width])
 
-    return daynight
+    return day_night
 
 
 def draw_box(satellites, drawing_settings):
@@ -164,7 +194,7 @@ def draw_box(satellites, drawing_settings):
             raw_map.append([earth_char(earth_color, char, end_color) for char in list(line.rstrip("\n"))])
 
         if drawing_settings.option["map_config"]['draw_day_night_cycle'] is True:
-            night_day = terminator(width, datetime.utcnow())
+            night_day = terminator(width, datetime.now())
 
             for y in range(len(raw_map)):
                 for x in range(len(raw_map[y])):

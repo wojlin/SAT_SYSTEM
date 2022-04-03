@@ -158,7 +158,7 @@ def get_image_metadata():
 
 @app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template('index.html', host=globals.HOST, port=globals.PORT)
 
 
 def start_api():

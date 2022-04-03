@@ -117,6 +117,8 @@
     <div id="image_viewer_arrow_right"></div>
     <div id="image_viewer_close" onclick="document.getElementById('image_viewer').style.display = 'none'"></div>
 </div>
+<div id="host" data-host ="{{host}}" style="position:absolute;top:-100vh;"></div>
+<div id="port" data-port ="{{port}}" style="position:absolute;top:-100vh;"></div>
 <script src="{{url_for('static', filename='js/get_map.js')}}"></script>
 <script src="{{url_for('static', filename='js/get_flyby.js')}}"></script>
 <script src="{{url_for('static', filename='js/get_info.js')}}"></script>

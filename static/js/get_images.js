@@ -1,5 +1,5 @@
-var host = "localhost"
-var port = "2137"
+var host = document.getElementById("host").dataset.host;
+var port = document.getElementById("port").dataset.port;
 
 
 function get_metadata(name) {
@@ -90,7 +90,9 @@ function open_gallery(name)
     console.log(name);
     var data = {"name": name};
     const querystring = encodeQueryData(data);
+    document.getElementById("image_viewer_box").style='';
     var image = document.getElementById("image_viewer_box_image");
+    image.style='';
     var url = 'http://'+host+':'+port+'/api/get_image?' + querystring
     image.src = url;
     document.getElementById("image_viewer").style.display = "block";
@@ -170,9 +172,6 @@ document.addEventListener("wheel", function(e) {
         zoomElement.style.transform = `scale(${zoom += ZOOM_SPEED}) translateY(-50%)`;  }
 
 });
-
-
-
 
 
 

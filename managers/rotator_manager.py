@@ -6,9 +6,10 @@ import globals
 
 
 def manage_rotation(sat: satellite, duration):
-    t_in_UTC = sat.datetime_to_utc(datetime.utcnow())
+
     left_duration = int(duration)
     while left_duration > 0:
+        t_in_UTC = sat.datetime_to_utc(datetime.utcnow())
         data = sat.get_perspective_info(t_in_UTC)
         globals.ROTATOR_ELEVATION = round(data["altitude"], 2)
         globals.ROTATOR_AZIMUTH = round(data["azimuth"], 2)

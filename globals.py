@@ -28,6 +28,7 @@ WIDTH = 180
 HEIGHT = 45
 HOST = json.loads(utils.read_file('config/setup.json'))["api_settings"]["host"]
 PORT = json.loads(utils.read_file('config/setup.json'))["api_settings"]["port"]
-
+ROTATOR_ELEVATION = 0.00
+ROTATOR_AZIMUTH = 0.00
 ANSI_DRAWING_SETTINGS = options('drawing_settings', 'ansi', json.loads(utils.read_file('config/setup.json'))['drawing_settings'])
 HTML_DRAWING_SETTINGS = options('drawing_settings', 'html', json.loads(utils.read_file('config/setup.json'))['drawing_settings'])

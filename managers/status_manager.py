@@ -1,21 +1,28 @@
 import globals
 import utils
+import json
 
 
 def draw_box(drawing_settings):
-    spaces = [100, 20]
+    last_action = utils.add_col(f"LAST ACTION: {globals.LAST_ACTION}", 95)
 
-    text_buffer = utils.add_col(f"LAST ACTION: {globals.LAST_ACTION}", spaces[0]) + \
-                  utils.add_col(f"RADIO:", spaces[1])
-    target = f"http://{globals.HOST}:{globals.PORT}"
-    if drawing_settings.render == 'ansi':
-        server = f"SERVER: \u001b]8;;{target}\u001b\\{target}\u001b]8;;\u001b\\"
-    elif drawing_settings.render == 'html':
-        server = f"SERVER: {target}"
+    if json.loads(utils.read_file('config/setup.json'))["decode_settings"]['use_rotator'] is True:
+        radio = utils.add_col(f"ROTATOR: ⟳ {str(globals.ROTATOR_AZIMUTH).zfill(2)}°  ∠ {str(globals.ROTATOR_ELEVATION).zfill(2)}°", 50)
     else:
-        raise Exception(f"unsupported render type: {drawing_settings.render}")
+        radio = utils.add_col("ROTATOR: disabled", 50)
 
-    text_buffer += (' ' * (globals.WIDTH - len(text_buffer) - len(target) - len("SERVER:")) + server)
+    if json.loads(utils.read_file('config/setup.json'))["api_settings"]['use_api'] is True:
+        target = f"http://{globals.HOST}:{globals.PORT}"
+        if drawing_settings.render == 'ansi':
+            server = f"SERVER: \u001b]8;;{target}\u001b\\{target}\u001b]8;;\u001b\\"
+        elif drawing_settings.render == 'html':
+            server = f"SERVER: {target}"
+        else:
+            raise Exception(f"unsupported render type: {drawing_settings.render}")
+    else:
+        server = "SERVER: disabled"
+
+    text_buffer = last_action + radio + server
 
     if drawing_settings.render == 'ansi':
         return text_buffer, 1

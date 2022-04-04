@@ -31,10 +31,14 @@ def tle_update_manager(interval, sats):
 def update_tle(catnum, name):
     pre_sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
     url = f'https://celestrak.com/NORAD/elements/gp.php?CATNR={catnum}&FORMAT=tle'
-    r = requests.get(url)
-    if r.status_code == 200:
-        lines = r.text.split('\n')
-        if len(lines[1]) == 70 and len(lines[2]) == 70:
-            pre_sat_file[name]['line1'] = str(lines[1]).rstrip('\r').rstrip('\n')
-            pre_sat_file[name]['line2'] = str(lines[2]).rstrip('\r').rstrip('\n')
-            utils.write_file('config/tle.json', json.dumps(pre_sat_file, sort_keys=False, indent=4))
+    try:
+        r = requests.get(url)
+        if r.status_code == 200:
+            lines = r.text.split('\n')
+            if len(lines[1]) == 70 and len(lines[2]) == 70:
+                pre_sat_file[name]['line1'] = str(lines[1]).rstrip('\r').rstrip('\n')
+                pre_sat_file[name]['line2'] = str(lines[2]).rstrip('\r').rstrip('\n')
+                utils.write_file('config/tle.json', json.dumps(pre_sat_file, sort_keys=False, indent=4))
+    except Exception as e:
+        globals.LOGGER.error(f"there was an error downloading the tle for the {name} satellite:\n{e}")
+        globals.LAST_ACTION = f"there was an error downloading the tle for the satellites"

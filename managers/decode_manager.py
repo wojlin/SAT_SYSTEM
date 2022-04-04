@@ -7,12 +7,12 @@ import time
 from subprocess import Popen, PIPE
 
 import utils
-from managers import flyby_manager
+from managers import flyby_manager, rotator_manager
 import satellites
 import globals
 
 
-def decode(transmission_type, t_start, sat_name, name, freq, duration, temp, output, metadata, delete):
+def decode(sat, transmission_type, t_start, sat_name, name, freq, duration, temp, output, metadata, delete):
     dt = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
     pause.until(dt)
     globals.LOGGER.error("decoding image from satellite:\n"
@@ -21,6 +21,10 @@ def decode(transmission_type, t_start, sat_name, name, freq, duration, temp, out
                         f"* frequency         : {freq}\n"
                         f"* duration          : {duration}")
     globals.LAST_ACTION = f"{t_start} decoding {sat_name} {transmission_type} transmission on {freq}Mhz"
+
+    rotator_manager_thread = threading.Thread(target=rotator_manager.manage_rotation, args=(sat, duration,))
+    rotator_manager_thread.start()
+
     t = 'error'
     if transmission_type == "APT":
         t = subprocess.Popen(
@@ -113,6 +117,7 @@ def decode_manager(sats: [satellites.satellite], t_in, t_out, angle, delete_temp
                         metadata = json.dumps({"status": "metadata_disabled"})
                     decode_thread = threading.Thread(target=decode,
                                                      kwargs={
+                                                         "sat": sat,
                                                          "transmission_type": sat.type,
                                                          "t_start": event_start,
                                                          "sat_name": sat.name,
@@ -127,8 +132,9 @@ def decode_manager(sats: [satellites.satellite], t_in, t_out, angle, delete_temp
                     break
 
         # testing
-        '''decode_thread = threading.Thread(target=decode,
-                                         kwargs={"transmission_type": 'APT',
+        """decode_thread = threading.Thread(target=decode,
+                                         kwargs={"sat": sats[0],
+                                                 "transmission_type": 'APT',
                                                  "t_start": '2022-02-28 14:20:00',
                                                  "sat_name": 'meteor',
                                                  "name": f"test",
@@ -138,7 +144,7 @@ def decode_manager(sats: [satellites.satellite], t_in, t_out, angle, delete_temp
                                                  "output": 'output',
                                                  "metadata": json.dumps({"status": "metadata_enabled"}),
                                                  "delete": delete_temp})
-        decode_thread.start()'''
+        decode_thread.start()"""
 
         globals.LAST_ACTION = f"scheduled flyby decode for {len(flyby_list['events'])} events"
         globals.LOGGER.error(f"scheduled flyby decode for {len(flyby_list['events'])} events")

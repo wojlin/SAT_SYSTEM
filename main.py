@@ -7,14 +7,15 @@ import sys
 
 import globals
 import utils
-from managers import info_manager,\
-    flyby_manager,\
-    map_manager,\
-    tle_manager,\
-    decode_manager,\
-    logging_manager,\
-    api_manager,\
-    status_manager
+from managers import info_manager, \
+    flyby_manager, \
+    map_manager, \
+    tle_manager, \
+    decode_manager, \
+    logging_manager, \
+    api_manager, \
+    status_manager, \
+    rotator_manager
 
 
 def draw_board(table_name, drawing_settings, first_time, add_height):
@@ -31,8 +32,10 @@ def draw_board(table_name, drawing_settings, first_time, add_height):
         sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
         sats = tle_manager.read_tle(sat_file)
         hours = int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['hours_ahead'])
-        angle = int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['minimal_angle'])
-        amount = int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['display_amount'])
+        angle = int(
+            json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['minimal_angle'])
+        amount = int(
+            json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['display_amount'])
         filtered_list = flyby_manager.get_flyby_filtered_list(sats, datetime.utcnow(),
                                                               datetime.utcnow() + timedelta(hours=hours), angle)
         table, height = flyby_manager.draw_box(filtered_list, amount, drawing_settings=drawing_settings)
@@ -109,7 +112,8 @@ def manage_decode():
         temp = str(json.loads(utils.read_file('config/setup.json'))["decode_settings"]['decode_temp_path'])
         output = str(json.loads(utils.read_file('config/setup.json'))["decode_settings"]['output_dir_path'])
         hours = int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['hours_ahead'])
-        angle = int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['minimal_angle'])
+        angle = int(
+            json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['minimal_angle'])
         tle_update_manager_thread = threading.Thread(target=decode_manager.decode_manager,
                                                      kwargs={'sats': sats,
                                                              "t_in": datetime.utcnow(),
@@ -127,11 +131,18 @@ def manage_api():
         api_manager_thread.start()
 
 
+def manage_rotator():
+    if json.loads(utils.read_file('config/setup.json'))["decode_settings"]['use_rotator'] is True:
+        rotator_manager_thread = threading.Thread(target=rotator_manager.tcp_manager)
+        rotator_manager_thread.start()
+
+
 def main():
     globals.LOGGER = logging_manager.manage_logging()
     manage_api()
     manage_tle()
     manage_decode()
+    manage_rotator()
     manage_box_drawing(globals.ANSI_DRAWING_SETTINGS)
 
 

@@ -22,6 +22,7 @@
   "decode_settings": {
     "decode": true,
     "use_rotator": true,
+    "rotator_host": "localhost",
     "rotator_port": 2138,
     "delete_temp_files": true,
     "decode_temp_path": "temp",

@@ -158,15 +158,15 @@ def get_image_metadata():
 
 @app.route("/")
 def index():
-    return render_template('index.html', host=globals.HOST, port=globals.PORT)
+    return render_template('index.html', host=globals.API_HOST, port=globals.API_PORT)
 
 
 def start_api():
     try:
-        app.run(globals.HOST, globals.PORT, False)
+        app.run(globals.API_HOST, globals.API_PORT, False)
     except Exception as e:
         globals.LOGGER.error(e)
 
 
 if __name__ == "__main__":
-    app.run(globals.HOST, globals.PORT, True)
+    app.run(globals.API_HOST, globals.API_PORT, True)

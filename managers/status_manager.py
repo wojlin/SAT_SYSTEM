@@ -12,7 +12,7 @@ def draw_box(drawing_settings):
         radio = utils.add_col("ROTATOR: disabled", 50)
 
     if json.loads(utils.read_file('config/setup.json'))["api_settings"]['use_api'] is True:
-        target = f"http://{globals.HOST}:{globals.PORT}"
+        target = f"http://{globals.API_HOST}:{globals.API_PORT}"
         if drawing_settings.render == 'ansi':
             server = f"SERVER: \u001b]8;;{target}\u001b\\{target}\u001b]8;;\u001b\\"
         elif drawing_settings.render == 'html':

@@ -1,13 +1,13 @@
 # SAT SYSTEM
 
 <p align="center">
-<img alt="preview" src="static/images/preview.png" width="500px"/>
-<img alt="preview_api" src="static/images/preview_api.png" width="500px"/>
+<img alt="preview" src="static/images/preview.png" width="100%"/>
+<img alt="preview_api" src="static/images/preview_api.png" width="100%"/>
 </p>
 
 ---
 
-### DESCRIPTION
+## DESCRIPTION
 SAT SYSTEM is a tool for automatic satellite tracking and image decoding
 
 - the program runs without any GUI and can be run in CLI without any desktop environment
@@ -24,11 +24,11 @@ SAT SYSTEM is a tool for automatic satellite tracking and image decoding
 
 ---
 
-### INSTALATION
+## INSTALATION
 
 1.  install meteor_demod
 
-```
+```console
 git clone https://github.com/dbdexter-dev/meteor_demod
 cd meteor_demod
 mkdir build && cd build
@@ -38,7 +38,7 @@ sudo make install
 ```
 2.  install meteor_decode
 
-```
+```console
 git clone https://github.com/dbdexter-dev/meteor_decode
 cd meteor_decode
 mkdir build && cd build
@@ -47,17 +47,17 @@ make
 sudo make install
 ```
 3.  install noaa-apt
-```
+```console
 https://github.com/martinber/noaa-apt/releases
 ```
 
 4. install rtl-sdr (you may need to change some system config files) (refer to offcial install guide)
-```
+```console
 sudo apt install rtl-sdr
 ```
 
 5. clone this repo
-```
+```console
 git clone https://github.com/wojlin/SAT_SYSTEM
 cd SAT_SYSTEM
 pip install -r requirements.txt
@@ -65,13 +65,13 @@ pip install -r requirements.txt
 6. edit config files to your needs
 
 7. to start promgram move to SAT_SYSTEM directory and run command:
-```
+```console
 python3 main.py
 ```
 
 ---
 
-### CONFIG CONFIGURATION
+## CONFIG CONFIGURATION
 
 config file is located in config/setup.json
 
@@ -174,7 +174,7 @@ config file is located in config/setup.json
 
 ---
 
-### TLE CONFIG CONFIGURATION
+## TLE CONFIG CONFIGURATION
 
 tle config file is located in config/tle.json
 
@@ -192,8 +192,9 @@ tle config file is located in config/tle.json
 
 ---
 
-### TO DO
+## TO DO
 
-- dynamic resizable "GUI" to fit depenfing on terminal size
+- dynamic resizable "GUI" to fit depending on terminal size
 - implement doppler shift to signal demodulation
 - implement HRPT signal decoding
+- optimalization

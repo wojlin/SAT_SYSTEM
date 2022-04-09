@@ -4,6 +4,7 @@ import json
 import time
 import ast
 import sys
+import os
 
 import globals
 import utils
@@ -26,6 +27,7 @@ def draw_board(table_name, drawing_settings, first_time, add_height):
         if not first_time:
             for i in range(height + add_height):
                 sys.stdout.write("\033[F\033[K")
+        os.system('clear')
         sys.stdout.write(table)
         sys.stdout.write('\n')
     elif table_name == 'flyby':
@@ -138,6 +140,7 @@ def manage_rotator():
 
 
 def main():
+    print('\033[?25l', end="")
     globals.LOGGER = logging_manager.manage_logging()
     manage_api()
     manage_tle()

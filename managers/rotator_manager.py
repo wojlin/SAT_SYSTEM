@@ -25,14 +25,18 @@ class tcp_manager:
     def handle_client(conn, addr):
         globals.LOGGER.error(f"connected with rotator on address: {addr}")
         globals.LAST_ACTION = f"connected with rotator on address: {addr}"
-        while True:
-            packet = f"{globals.ROTATOR_AZIMUTH},{globals.ROTATOR_ELEVATION}".encode('utf-8')
-            packet_length = len(packet)
-            send_length = str(packet_length).encode('utf-8')
-            send_length += b' ' * (64 - len(send_length))
-            conn.send(send_length)
-            conn.send(packet)
-            time.sleep(1)
+        try:
+            while True:
+                packet = f"{globals.ROTATOR_AZIMUTH},{globals.ROTATOR_ELEVATION}".encode('utf-8')
+                packet_length = len(packet)
+                send_length = str(packet_length).encode('utf-8')
+                send_length += b' ' * (64 - len(send_length))
+                conn.send(send_length)
+                conn.send(packet)
+                time.sleep(1)
+        except Exception as e:
+            globals.LOGGER.error(f"error while sending tcp socket:\n {e}")
+            globals.LAST_ACTION = f"error while sending tcp socket"
 
 
 def manage_rotation(sat: satellite, duration):

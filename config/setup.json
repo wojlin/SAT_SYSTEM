@@ -43,6 +43,8 @@
       "display_amount": 5
     },
     "chars": {
+      "earth_land": "`",
+      "earth_ocean": " ",
       "upper_left_corner": "╔",
       "upper_right_corner": "╗",
       "lower_left_corner": "╚",

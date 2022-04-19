@@ -1,6 +1,8 @@
-import math
-import numpy as np
+import time
 from datetime import datetime, timedelta
+from PIL import Image
+import numpy as np
+import math
 
 import globals
 
@@ -12,6 +14,7 @@ class earth_char:
     """
     class that contain information about what is left side of char, char, right side of char
     """
+
     def __init__(self, left, center, right):
         self.left_side = left
         self.center = center
@@ -37,12 +40,6 @@ def draw_point(drawing_settings: globals.options, raw_map: list, position: tuple
     """
     global height, width
 
-    arrow_up = drawing_settings.option["chars"]['arrow_up']
-    arrow_down = drawing_settings.option["chars"]['arrow_down']
-
-    lat_point = position[0]
-    lon_point = position[1]
-
     if drawing_settings.render == 'ansi':  # checking what draw mode was selected
         end_color = '\033' + drawing_settings.option[drawing_settings.render]['end_color']
     elif drawing_settings.render == 'html':
@@ -50,8 +47,6 @@ def draw_point(drawing_settings: globals.options, raw_map: list, position: tuple
     else:
         raise Exception("unsupported render type")
 
-    lon = 0
-    lat = 0
     name = ''
     direction = ''
 
@@ -61,39 +56,44 @@ def draw_point(drawing_settings: globals.options, raw_map: list, position: tuple
         if arg == "direction":
             direction = kwargs[arg]
 
-    for y in range(len(raw_map)):
-        if 90 - lat <= math.floor(float(lat_point)) <= 90 - lat + int(180 / height):
-            for x in range(width):
-                if -180 + lon <= math.floor(float(lon_point)) <= -180 + lon + int(180 / width):
-                    y_raw_map = list(raw_map[y])
-                    y_raw_map[x] = earth_char(color, char, end_color)
+    lat = position[0]
+    lon = position[1]
 
-                    """ drawing name """
-                    if name != '':
-                        space = 0
-                        for character in range(len(name)):
-                            if 2 + x + character >= width:  # start from left if name is outside bounds
-                                y_raw_map[space] = earth_char(color, name[character], end_color)
-                                space += 1
-                            else:
-                                y_raw_map[2 + x + character] = earth_char(color, name[character], end_color)
+    rescale_x = lambda x: ((x * 360) / width) - 180
+    rescale_y = lambda y: ((y * 180) / height) - 90
+    x_loc = next((x for x in range(1, width + 1) if (rescale_x(x) <= lon <= rescale_x(x + 1))), 0)
+    y_loc = height - next((y for y in range(1, height + 1) if (rescale_y(y) <= lat <= rescale_y(y + 1))), 0)
 
-                    """ drawing direction arrow """
-                    if direction != '':
-                        if direction == "up":
-                            if y + 2 > 0:
-                                y_arrow_raw_map = list(raw_map[y - 1])
-                                y_arrow_raw_map[x] = earth_char(color, arrow_up, end_color)
-                                raw_map[y - 1] = y_arrow_raw_map
-                        else:
-                            if y + 2 < height:
-                                y_arrow_raw_map = list(raw_map[y + 1])
-                                y_arrow_raw_map[x] = earth_char(color, arrow_down, end_color)
-                                raw_map[y + 1] = y_arrow_raw_map
+    y_raw_map = list(raw_map[y_loc])
+    y_raw_map[x_loc] = earth_char(color, char, end_color)
 
-                    raw_map[y] = y_raw_map
-                lon += int(360 / width)
-        lat += int(180 / height)
+    """ drawing name """
+    if name != '':
+        space = 0
+        for character in range(len(name)):
+            if 2 + x_loc + character >= width:  # start from left if name is outside bounds
+                y_raw_map[space] = earth_char(color, name[character], end_color)
+                space += 1
+            else:
+                y_raw_map[2 + x_loc + character] = earth_char(color, name[character], end_color)
+
+    """ drawing direction arrow """
+    if direction != '':
+        arrow_up = drawing_settings.option["chars"]['arrow_up']
+        arrow_down = drawing_settings.option["chars"]['arrow_down']
+        if direction == "up":
+            if y_loc + 2 > 0:
+                y_arrow_raw_map = list(raw_map[y_loc - 1])
+                y_arrow_raw_map[x_loc] = earth_char(color, arrow_up, end_color)
+                raw_map[y_loc - 1] = y_arrow_raw_map
+        else:
+            if y_loc + 2 < height:
+                y_arrow_raw_map = list(raw_map[y_loc + 1])
+                y_arrow_raw_map[x_loc] = earth_char(color, arrow_down, end_color)
+                raw_map[y_loc + 1] = y_arrow_raw_map
+
+    raw_map[y_loc] = y_raw_map
+
     return raw_map
 
 
@@ -160,6 +160,26 @@ def terminator(_width: int, date: datetime):
     return day_night
 
 
+def earth_map(drawing_settings: globals.options):
+    global width, height
+    earth_land = drawing_settings.option["chars"]['earth_land']
+    earth_ocean = drawing_settings.option["chars"]['earth_ocean']
+
+    img = Image.open('static/images/earth.png')
+    scaler = (width / (float(img.size[0] * 2)))
+    hsize = int((float(img.size[1]) * float(scaler)))
+    img = img.resize((width, hsize), Image.ANTIALIAS)
+    img = img.convert('1')
+    pixels = img.load()
+    w, h = img.size
+    all_pixels = [[0 for x in range(w)] for y in range(h)]
+    for y in range(h):
+        for x in range(w):
+            all_pixels[y][x] = earth_ocean if pixels[x, y] == 0 else earth_land
+    height = len(all_pixels)
+    return all_pixels
+
+
 def draw_box(satellites: list, drawing_settings: globals.options):
     """
     this function draws the map using the drawing settings and list of sattelites
@@ -212,88 +232,89 @@ def draw_box(satellites: list, drawing_settings: globals.options):
     """drawing map"""
     sats_buffer = satellites
     table = ''
-    with open('config/cli_earth', 'r') as f:  # reading file that contain ascii art with world map
 
-        name = f"{left_opener} satellite map {right_opener}"
-        half_len = int(len(name) / 2)
-        left_side = int(width / 2) - half_len
-        table += str(border_color + upper_left_corner + str(horizontal_line * left_side) + str(name) + str(
-            horizontal_line * (width - (left_side + len(name)))) + upper_right_corner + end_color + '\n')
+    char_map = earth_map(drawing_settings)
 
-        raw_map = []
-        for line in f:
-            raw_map.append([earth_char(earth_color, char, end_color) for char in list(line.rstrip("\n"))])
+    name = f"{left_opener} satellite map {right_opener}"
+    half_len = int(len(name) / 2)
+    left_side = int(width / 2) - half_len
+    table += str(border_color + upper_left_corner + str(horizontal_line * left_side) + str(name) + str(
+        horizontal_line * (width - (left_side + len(name)))) + upper_right_corner + end_color + '\n')
 
-        if drawing_settings.option["map_config"]['draw_day_night_cycle'] is True:
-            night_day = terminator(width, datetime.now())
+    raw_map = []
 
-            for y in range(len(raw_map)):
-                for x in range(len(raw_map[y])):
-                    if int(night_day[y][x]) == 0:
-                        raw_map[y][x].left_side = earth_color_night
+    for line in char_map:
+        raw_map.append([earth_char(earth_color, char, end_color) for char in list(line)])
 
-            for y in range(len(raw_map)):
-                for x in range(len(raw_map[y]) - 1):
-                    if int(night_day[y][x]) == 0 and int(night_day[y][x + 1]) == 1:
-                        raw_map[y][x].left_side = earth_color_sunset
-                        raw_map[y][x].center = sunset
+    if drawing_settings.option["map_config"]['draw_day_night_cycle'] is True:
+        night_day = terminator(width, datetime.now())
 
-            for y in range(len(raw_map)):
-                for x in range(len(raw_map[y]) - 1):
-                    if int(night_day[y][x]) == 1 and int(night_day[y][x + 1]) == 0:
-                        raw_map[y][x].left_side = earth_color_sunset
-                        raw_map[y][x].center = sunset
+        for y in range(len(raw_map)):
+            for x in range(len(raw_map[y])):
+                if int(night_day[y][x]) == 0:
+                    raw_map[y][x].left_side = earth_color_night
 
-        if drawing_settings.option["map_config"]['draw_ground_station']:
-            raw_map = draw_point(drawing_settings, raw_map, (globals.POS["lat"], globals.POS["lon"]), ground_station,
-                                 ground_station_color,
-                                 name=ground_station_name)
+        for y in range(len(raw_map)):
+            for x in range(len(raw_map[y]) - 1):
+                if int(night_day[y][x]) == 0 and int(night_day[y][x + 1]) == 1:
+                    raw_map[y][x].left_side = earth_color_sunset
+                    raw_map[y][x].center = sunset
 
-        colors = sat_colors
-        current_color = 0
+        for y in range(len(raw_map)):
+            for x in range(len(raw_map[y]) - 1):
+                if int(night_day[y][x]) == 1 and int(night_day[y][x + 1]) == 0:
+                    raw_map[y][x].left_side = earth_color_sunset
+                    raw_map[y][x].center = sunset
 
-        if drawing_settings.option["map_config"]['draw_satellite_path'] is True:
-            for sat in sats_buffer:
-                resolution = int(drawing_settings.option["map_config"]['satellite_path_resolution'])
-                ahead = int(drawing_settings.option["map_config"]['satellite_path_time_ahead'])
-                path_points = sat.get_position_path(datetime.utcnow(), datetime.utcnow() + timedelta(seconds=ahead),
-                                                    resolution)
-                for point in path_points:
-                    l_raw_map = draw_point(drawing_settings, raw_map, (path_points[point]["lat"],
-                                                                       path_points[point]["lon"]), "'",
-                                           colors[current_color])
-                    raw_map = l_raw_map
+    if drawing_settings.option["map_config"]['draw_ground_station']:
+        raw_map = draw_point(drawing_settings, raw_map, (globals.POS["lat"], globals.POS["lon"]), ground_station,
+                             ground_station_color,
+                             name=ground_station_name)
 
-                current_color += 1
-                if current_color >= len(colors):
-                    current_color = 0
-                raw_map = l_raw_map
+    colors = sat_colors
+    current_color = 0
 
-        current_color = 0
-
+    if drawing_settings.option["map_config"]['draw_satellite_path'] is True:
         for sat in sats_buffer:
-            l_sat = sat.get_json()
-            l_raw_map = draw_point(drawing_settings, raw_map, (l_sat["position"]['lat'], l_sat["position"]['lon']),
-                                   satellite,
-                                   colors[current_color],
-                                   name=l_sat["name"],
-                                   direction=l_sat["direction"])
+            resolution = int(drawing_settings.option["map_config"]['satellite_path_resolution'])
+            ahead = int(drawing_settings.option["map_config"]['satellite_path_time_ahead'])
+            path_points = sat.get_position_path(datetime.utcnow(), datetime.utcnow() + timedelta(seconds=ahead),
+                                                resolution)
+            l_raw_map = []
+            for point in path_points:
+                l_raw_map = draw_point(drawing_settings, raw_map, (path_points[point]["lat"],
+                                                                   path_points[point]["lon"]), "'",
+                                       colors[current_color])
+                raw_map = l_raw_map
 
             current_color += 1
             if current_color >= len(colors):
                 current_color = 0
             raw_map = l_raw_map
 
-        for line in raw_map:
-            joined_raw_map = ''.join([point.merged() for point in line])
-            table += str(
-                border_color + vertical_line + end_color + joined_raw_map + border_color + vertical_line + end_color + "\n")
-        table += str(border_color) + str(lower_left_corner) + str(horizontal_line * width) + str(
-            lower_right_corner + end_color + '\n')
+    current_color = 0
+
+    for sat in sats_buffer:
+        l_sat = sat.get_json()
+        l_raw_map = draw_point(drawing_settings, raw_map, (l_sat["position"]['lat'], l_sat["position"]['lon']),
+                               satellite,
+                               colors[current_color],
+                               name=l_sat["name"],
+                               direction=l_sat["direction"])
+
+        current_color += 1
+        if current_color >= len(colors):
+            current_color = 0
+        raw_map = l_raw_map
+
+    for line in raw_map:
+        joined_raw_map = ''.join([point.merged() for point in line])
+        table += str(
+            border_color + vertical_line + end_color + joined_raw_map + border_color + vertical_line + end_color + "\n")
+    table += str(border_color) + str(lower_left_corner) + str(horizontal_line * width) + str(
+        lower_right_corner + end_color + '\n')
 
     map_height = height + 2
-
-    f.close()
 
     if drawing_settings.render == 'ansi':
         return table, map_height

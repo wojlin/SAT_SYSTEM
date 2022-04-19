@@ -89,6 +89,7 @@ def manage_box_drawing(drawing_settings):
 
     while True:
         time.sleep(0.1)
+        globals.WIDTH = os.get_terminal_size().columns - 2
         for key in timeouts:
             timeouts[key] = timeouts[key] - 0.1
             if timeouts[key] <= 0:

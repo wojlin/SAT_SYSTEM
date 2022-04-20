@@ -2,8 +2,8 @@ import globals
 import utils
 
 
-def draw_box(satellites, drawing_settings):
-    width = globals.WIDTH
+def draw_box(satellites, drawing_settings, width, padding):
+    width = width - 2 - (padding * 2)
     upper_left_corner = drawing_settings.option["chars"]['upper_left_corner']
     upper_right_corner = drawing_settings.option["chars"]['upper_right_corner']
     lower_right_corner = drawing_settings.option["chars"]['lower_right_corner']
@@ -36,7 +36,7 @@ def draw_box(satellites, drawing_settings):
     name = f"{left_opener} SATELLITE INFO {right_opener}"
     half_len = int(len(name) / 2)
     left_side = int(width / 2) - half_len
-    table += str(border_color + upper_left_corner + horizontal_line * left_side + name + horizontal_line * (width - (left_side + len(name))) + upper_right_corner + end_color + '\n')
+    table += str(" " * globals.PADDING + border_color + upper_left_corner + horizontal_line * left_side + name + horizontal_line * (width - (left_side + len(name))) + upper_right_corner + end_color + " " * globals.PADDING + '\n')
 
     spaces = [1, 15, 15, 20, 8, 4, 8, 14, 12, 4, 15, 15, 15, 4, 10]
 
@@ -58,7 +58,7 @@ def draw_box(satellites, drawing_settings):
 
     text_buffer += ' ' * (width - len(text_buffer))
 
-    table += str(border_color + vertical_line + info_color + text_buffer + border_color + vertical_line + end_color + '\n')
+    table += str(" " * globals.PADDING + border_color + vertical_line + info_color + text_buffer + border_color + vertical_line + end_color + " " * globals.PADDING + '\n')
 
     for sat in satellites:
         line_data = sat.get_json()
@@ -81,9 +81,9 @@ def draw_box(satellites, drawing_settings):
 
         text_buffer += ' ' * (width - len(text_buffer))
 
-        table += str(border_color + vertical_line + text_color + text_buffer + border_color + vertical_line + end_color + '\n')
+        table += str(" " * globals.PADDING + border_color + vertical_line + text_color + text_buffer + border_color + vertical_line + end_color + " " * globals.PADDING + '\n')
 
-    table += str(border_color + lower_left_corner + horizontal_line * width + lower_right_corner + end_color + '\n\n')
+    table += str(" " * globals.PADDING + border_color + lower_left_corner + horizontal_line * width + lower_right_corner + end_color + " " * globals.PADDING + '\n\n')
 
     height = len(satellites) + 4
 

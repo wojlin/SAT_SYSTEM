@@ -1,5 +1,6 @@
 {
   "write_log": true,
+  "padding": 2,
   "ground_station": {
     "lat": 54.408010,
     "lon": 18.562690

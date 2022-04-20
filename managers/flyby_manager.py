@@ -56,8 +56,17 @@ def get_flyby_filtered_list(sats, t_in, t_out, degree):
     return {**template, **{"events": filtered_list}}
 
 
-def draw_box(flyby_json, entries_amount, drawing_settings):
-    width = globals.WIDTH
+'''class Segment:
+    def __init__(self, min_width, text, delimiter):
+        self.min_width = min_width
+        self.text = text
+        self.delimiter = delimiter
+    def '''
+
+def draw_box(flyby_json, entries_amount, drawing_settings, width, padding):
+
+    width = width - 2 - (padding * 2)
+
     upper_left_corner = drawing_settings.option["chars"]['upper_left_corner']
     upper_right_corner = drawing_settings.option["chars"]['upper_right_corner']
     lower_right_corner = drawing_settings.option["chars"]['lower_right_corner']
@@ -95,8 +104,8 @@ def draw_box(flyby_json, entries_amount, drawing_settings):
     half_len = int(len(name) / 2)
     left_side = int(width / 2) - half_len
     table += str(
-        border_color + upper_left_corner + horizontal_line * left_side + name + horizontal_line * (
-                width - (left_side + len(name))) + upper_right_corner + end_color + '\n')
+        " " * globals.PADDING + border_color + upper_left_corner + horizontal_line * left_side + name + horizontal_line * (
+                width - (left_side + len(name))) + upper_right_corner + end_color + " " * globals.PADDING + '\n')
 
     entry = 0
 
@@ -121,7 +130,7 @@ def draw_box(flyby_json, entries_amount, drawing_settings):
 
     text_buffer += ' ' * (width - len(text_buffer))
 
-    table += str(border_color + vertical_line + info_color + text_buffer + end_color + border_color + vertical_line + '\n')
+    table += str(" " * globals.PADDING + border_color + vertical_line + info_color + text_buffer + end_color + border_color + vertical_line + " " * globals.PADDING + '\n')
 
     for key in flyby_json["events"]:
         entry += 1
@@ -150,13 +159,13 @@ def draw_box(flyby_json, entries_amount, drawing_settings):
 
             text_buffer += ' ' * (width - len(text_buffer))
 
-            table += border_color + vertical_line + text_color + text_buffer + end_color + border_color + vertical_line + '\n'
+            table += " " * globals.PADDING + border_color + vertical_line + text_color + text_buffer + end_color + border_color + vertical_line + " " * globals.PADDING + '\n'
 
     for x in range(entries_amount - entry):
         entry += 1
-        table += border_color + vertical_line + text_color + f" {str(entry).zfill(2)}. " + ' ' * (width - 5) + border_color + vertical_line + '\n'
+        table += " " * globals.PADDING + border_color + vertical_line + text_color + f" {str(entry).zfill(2)}. " + ' ' * (width - 5) + border_color + vertical_line + " " * globals.PADDING + '\n'
 
-    table += lower_left_corner + horizontal_line * width + lower_right_corner + '\n'
+    table += " " * globals.PADDING + lower_left_corner + horizontal_line * width + lower_right_corner + " " * globals.PADDING + '\n'
 
     height = entries_amount + 4
 

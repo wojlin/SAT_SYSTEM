@@ -58,7 +58,9 @@ def get_map_box():
             options.option["map_config"][key] = False
         else:
             options.option["map_config"][key] = options_keys[key]
-    map_box = map_manager.draw_box(sats, options)
+    map_box = map_manager.draw_box(sats, options,
+                                   width=globals.WIDTH,
+                                   padding=globals.PADDING)
     return str(map_box[0])
 
 
@@ -78,7 +80,10 @@ def get_flyby_box():
     amount = int(options.option["flyby_config"]['display_amount'])
     filtered_list = flyby_manager.get_flyby_filtered_list(sats, datetime.utcnow(),
                                                           datetime.utcnow() + timedelta(hours=hours), angle)
-    flyby_box = flyby_manager.draw_box(filtered_list, amount, drawing_settings=options)
+    flyby_box = flyby_manager.draw_box(filtered_list, amount,
+                                       drawing_settings=options,
+                                       width=globals.WIDTH,
+                                       padding=globals.PADDING)
 
     return str(flyby_box[0])
 
@@ -86,7 +91,10 @@ def get_flyby_box():
 @app.route("/api/get_info", methods=["GET"])
 def get_info_box():
     options = globals.HTML_DRAWING_SETTINGS
-    info_box = info_manager.draw_box(sats, drawing_settings=options)
+    info_box = info_manager.draw_box(sats,
+                                     drawing_settings=options,
+                                     width=globals.WIDTH,
+                                     padding=globals.PADDING)
 
     return str(info_box[0])
 
@@ -94,7 +102,9 @@ def get_info_box():
 @app.route("/api/get_status", methods=["GET"])
 def get_status_box():
     options = globals.HTML_DRAWING_SETTINGS
-    status_box = status_manager.draw_box(drawing_settings=options)
+    status_box = status_manager.draw_box(drawing_settings=options,
+                                         width=globals.WIDTH,
+                                         padding=globals.PADDING)
     return str(status_box[0])
 
 

@@ -6,7 +6,6 @@ import math
 
 import globals
 
-width = globals.WIDTH
 height = globals.HEIGHT
 
 
@@ -27,7 +26,7 @@ class earth_char:
         return str(self.left_side + self.center + self.right_side)
 
 
-def draw_point(drawing_settings: globals.options, raw_map: list, position: tuple, char: str, color: str, **kwargs):
+def draw_point(drawing_settings: globals.options, raw_map: list, position: tuple, char: str, color: str, width: int, **kwargs):
     """
     this function creates point on map. It's capable of drawing name, direction and custom symbol as well
     :param drawing_settings: class options that contain information on how to draw map
@@ -36,9 +35,10 @@ def draw_point(drawing_settings: globals.options, raw_map: list, position: tuple
     :param char: char that will be displayed at that point
     :param color: color of symbol, can be hex or ansi
     :param kwargs: other parmeters like name of point or direction
+    :param width:
     :return: raw_map with new point drawn on it
     """
-    global height, width
+    global height
 
     if drawing_settings.render == 'ansi':  # checking what draw mode was selected
         end_color = '\033' + drawing_settings.option[drawing_settings.render]['end_color']
@@ -160,8 +160,8 @@ def terminator(_width: int, date: datetime):
     return day_night
 
 
-def earth_map(drawing_settings: globals.options):
-    global width, height
+def earth_map(drawing_settings: globals.options, width):
+    global height
     earth_land = drawing_settings.option["chars"]['earth_land']
     earth_ocean = drawing_settings.option["chars"]['earth_ocean']
 
@@ -170,23 +170,22 @@ def earth_map(drawing_settings: globals.options):
     hsize = int((float(img.size[1]) * float(scaler)))
     img = img.resize((width, hsize), Image.ANTIALIAS)
     img = img.convert('1')
-    pixels = img.load()
     w, h = img.size
-    all_pixels = [[0 for x in range(w)] for y in range(h)]
-    for y in range(h):
-        for x in range(w):
-            all_pixels[y][x] = earth_ocean if pixels[x, y] == 0 else earth_land
+    all_pixels = [[earth_land if img.load()[x, y] else earth_ocean for x in range(w)] for y in range(h)]
     height = len(all_pixels)
     return all_pixels
 
 
-def draw_box(satellites: list, drawing_settings: globals.options):
+def draw_box(satellites: list, drawing_settings: globals.options, width: int, padding: int):
     """
     this function draws the map using the drawing settings and list of sattelites
     :param satellites: list that contains satellite classes
     :param drawing_settings: class options that contains drawing settings
+    :param width:
+    :param padding:
     :return: string with map drawn on it
     """
+    width = width - 2 - (padding * 2)
 
     """defining shorter name for options parameters"""
     upper_left_corner = drawing_settings.option["chars"]['upper_left_corner']
@@ -233,13 +232,13 @@ def draw_box(satellites: list, drawing_settings: globals.options):
     sats_buffer = satellites
     table = ''
 
-    char_map = earth_map(drawing_settings)
+    char_map = earth_map(drawing_settings, width)
 
     name = f"{left_opener} satellite map {right_opener}"
     half_len = int(len(name) / 2)
     left_side = int(width / 2) - half_len
-    table += str(border_color + upper_left_corner + str(horizontal_line * left_side) + str(name) + str(
-        horizontal_line * (width - (left_side + len(name)))) + upper_right_corner + end_color + '\n')
+    table += " " * globals.PADDING + str(border_color + upper_left_corner + str(horizontal_line * left_side) + str(name) + str(
+        horizontal_line * (width - (left_side + len(name)))) + upper_right_corner + end_color + " " * globals.PADDING + '\n')
 
     raw_map = []
 
@@ -269,6 +268,7 @@ def draw_box(satellites: list, drawing_settings: globals.options):
     if drawing_settings.option["map_config"]['draw_ground_station']:
         raw_map = draw_point(drawing_settings, raw_map, (globals.POS["lat"], globals.POS["lon"]), ground_station,
                              ground_station_color,
+                             width,
                              name=ground_station_name)
 
     colors = sat_colors
@@ -284,7 +284,7 @@ def draw_box(satellites: list, drawing_settings: globals.options):
             for point in path_points:
                 l_raw_map = draw_point(drawing_settings, raw_map, (path_points[point]["lat"],
                                                                    path_points[point]["lon"]), "'",
-                                       colors[current_color])
+                                       colors[current_color], width)
                 raw_map = l_raw_map
 
             current_color += 1
@@ -299,6 +299,7 @@ def draw_box(satellites: list, drawing_settings: globals.options):
         l_raw_map = draw_point(drawing_settings, raw_map, (l_sat["position"]['lat'], l_sat["position"]['lon']),
                                satellite,
                                colors[current_color],
+                               width,
                                name=l_sat["name"],
                                direction=l_sat["direction"])
 
@@ -310,9 +311,9 @@ def draw_box(satellites: list, drawing_settings: globals.options):
     for line in raw_map:
         joined_raw_map = ''.join([point.merged() for point in line])
         table += str(
-            border_color + vertical_line + end_color + joined_raw_map + border_color + vertical_line + end_color + "\n")
-    table += str(border_color) + str(lower_left_corner) + str(horizontal_line * width) + str(
-        lower_right_corner + end_color + '\n')
+            " " * globals.PADDING + border_color + vertical_line + end_color + joined_raw_map + border_color + vertical_line + end_color + " " * globals.PADDING + "\n")
+    table += " " * globals.PADDING + str(border_color) + str(lower_left_corner) + str(horizontal_line * width) + str(
+        lower_right_corner + end_color + " " * globals.PADDING + '\n')
 
     map_height = height + 2
 

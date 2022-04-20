@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import threading
+import signal
 import json
 import time
 import ast
@@ -18,12 +19,18 @@ from managers import info_manager, \
     status_manager, \
     rotator_manager
 
+threads = []
+start_date = datetime.now()
+
 
 def draw_board(table_name, drawing_settings, first_time, add_height):
     if table_name == 'map':
         sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
         sats = tle_manager.read_tle(sat_file)
-        table, height = map_manager.draw_box(satellites=sats, drawing_settings=drawing_settings)
+        table, height = map_manager.draw_box(satellites=sats,
+                                             drawing_settings=drawing_settings,
+                                             width=globals.WIDTH,
+                                             padding=globals.PADDING)
         if not first_time:
             for i in range(height + add_height):
                 sys.stdout.write("\033[F\033[K")
@@ -40,7 +47,10 @@ def draw_board(table_name, drawing_settings, first_time, add_height):
             json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['display_amount'])
         filtered_list = flyby_manager.get_flyby_filtered_list(sats, datetime.utcnow(),
                                                               datetime.utcnow() + timedelta(hours=hours), angle)
-        table, height = flyby_manager.draw_box(filtered_list, amount, drawing_settings=drawing_settings)
+        table, height = flyby_manager.draw_box(filtered_list, amount,
+                                               drawing_settings=drawing_settings,
+                                               width=globals.WIDTH,
+                                               padding=globals.PADDING)
         if not first_time:
             for i in range(height + add_height):
                 sys.stdout.write("\033[F\033[K")
@@ -49,7 +59,10 @@ def draw_board(table_name, drawing_settings, first_time, add_height):
     elif table_name == 'info':
         sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
         sats = tle_manager.read_tle(sat_file)
-        table, height = info_manager.draw_box(sats, drawing_settings=drawing_settings)
+        table, height = info_manager.draw_box(sats,
+                                              drawing_settings=drawing_settings,
+                                              width=globals.WIDTH,
+                                              padding=globals.PADDING)
         if not first_time:
             for i in range(height + add_height):
                 sys.stdout.write("\033[F\033[K")
@@ -60,7 +73,9 @@ def draw_board(table_name, drawing_settings, first_time, add_height):
         for i in range(height + add_height):
             sys.stdout.write("\033[F\033[K")
 
-        table, height = status_manager.draw_box(drawing_settings=drawing_settings)
+        table, height = status_manager.draw_box(drawing_settings=drawing_settings,
+                                                width=globals.WIDTH,
+                                                padding=globals.PADDING)
 
         sys.stdout.write(str(table + '\n'))
 
@@ -73,8 +88,9 @@ def manage_tle():
     if json.loads(utils.read_file('config/setup.json'))["tle_update"]['update'] is True:
         interval = float(json.loads(utils.read_file('config/setup.json'))["tle_update"]['update_interval'])
         pre_sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
-        tle_update_manager_thread = threading.Thread(target=tle_manager.tle_update_manager,
+        tle_update_manager_thread = threading.Thread(target=tle_manager.tle_update_manager, daemon=True,
                                                      args=(interval, pre_sat_file,))
+        threads.append(tle_update_manager_thread)
         tle_update_manager_thread.start()
 
 
@@ -86,10 +102,25 @@ def manage_box_drawing(drawing_settings):
 
     timeouts_load = json.loads(utils.read_file('config/setup.json'))["console_update"]
     timeouts = json.loads(utils.read_file('config/setup.json'))["console_update"]
-
+    last_width = os.get_terminal_size().columns
     while True:
         time.sleep(0.1)
-        globals.WIDTH = os.get_terminal_size().columns - 2
+        globals.WIDTH = os.get_terminal_size().columns
+
+        if last_width != globals.WIDTH:
+            for key in timeouts:
+                index = 0
+                add_height = 0
+                for i in range(len(heights)):
+                    if heights[i][0] == key:
+                        index = i
+                for i in range(index + 1, len(heights)):
+                    add_height += heights[i][1]
+                draw_board(key, first_time=False, add_height=add_height, drawing_settings=drawing_settings)
+                for i in range(index + 1, len(heights)):
+                    draw_board(heights[i][0], first_time=True, add_height=0, drawing_settings=drawing_settings)
+            last_width = globals.WIDTH
+
         for key in timeouts:
             timeouts[key] = timeouts[key] - 0.1
             if timeouts[key] <= 0:
@@ -117,7 +148,7 @@ def manage_decode():
         hours = int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['hours_ahead'])
         angle = int(
             json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['minimal_angle'])
-        tle_update_manager_thread = threading.Thread(target=decode_manager.decode_manager,
+        tle_update_manager_thread = threading.Thread(target=decode_manager.decode_manager, daemon=True,
                                                      kwargs={'sats': sats,
                                                              "t_in": datetime.utcnow(),
                                                              "t_out": datetime.utcnow() + timedelta(hours=hours),
@@ -125,19 +156,29 @@ def manage_decode():
                                                              'delete_temp': delete_temp,
                                                              'temp': temp,
                                                              'output': output})
+        threads.append(tle_update_manager_thread)
         tle_update_manager_thread.start()
 
 
 def manage_api():
     if json.loads(utils.read_file('config/setup.json'))["api_settings"]['use_api'] is True:
-        api_manager_thread = threading.Thread(target=api_manager.start_api)
+        api_manager_thread = threading.Thread(target=api_manager.start_api, daemon=True)
+        threads.append(api_manager_thread)
         api_manager_thread.start()
 
 
 def manage_rotator():
     if json.loads(utils.read_file('config/setup.json'))["decode_settings"]['use_rotator'] is True:
-        rotator_manager_thread = threading.Thread(target=rotator_manager.tcp_manager)
+        rotator_manager_thread = threading.Thread(target=rotator_manager.tcp_manager, daemon=True)
+        threads.append(rotator_manager_thread)
         rotator_manager_thread.start()
+
+
+def program_exit(signum, frame):
+    os.system('clear')
+    sys.stdout.write("\033[?25h")
+    print(f"SAT SYSTEM started on {start_date} and ended on {datetime.now()}")
+    sys.exit()
 
 
 def main():
@@ -147,6 +188,7 @@ def main():
     manage_tle()
     manage_decode()
     manage_rotator()
+    signal.signal(signal.SIGINT, program_exit)
     manage_box_drawing(globals.ANSI_DRAWING_SETTINGS)
 
 

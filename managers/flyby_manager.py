@@ -1,5 +1,4 @@
 import utils
-import globals
 
 
 def get_flyby_raw_list(sats, t_in, t_out, degree):
@@ -56,82 +55,29 @@ def get_flyby_filtered_list(sats, t_in, t_out, degree):
     return {**template, **{"events": filtered_list}}
 
 
-'''class Segment:
-    def __init__(self, min_width, text, delimiter):
-        self.min_width = min_width
-        self.text = text
-        self.delimiter = delimiter
-    def '''
-
 def draw_box(flyby_json, entries_amount, drawing_settings, width, padding):
 
-    width = width - 2 - (padding * 2)
+    _columns = {0: {"name": " NO:", "priority": 0, "width": 4},
+                1: {"name": "SATELLITE:", "priority": 0, "width": 11},
+                2: {"name": "MAX ALT:", "priority": 0, "width": 8},
+                3: {"name": "DURATION:", "priority": 0, "width": 9},
+                4: {"name": "|", "priority": 2, "width": 2},
+                5: {"name": "RISE:", "priority": 1, "width": 22},
+                6: {"name": "AZIMUTH:", "priority": 3, "width": 10},
+                7: {"name": "DIR:", "priority": 4, "width": 4},
+                8: {"name": "|", "priority": 3, "width": 2},
+                9: {"name": "CULMINATE:", "priority": 3, "width": 22},
+                10: {"name": "AZIMUTH:", "priority": 3, "width": 10},
+                11: {"name": "DIR:", "priority": 4, "width": 4},
+                12: {"name": "|", "priority": 2, "width": 2},
+                13: {"name": "SET:", "priority": 1, "width": 22},
+                14: {"name": "AZIMUTH:", "priority": 3, "width": 10},
+                15: {"name": "DIR:", "priority": 4, "width": 4},
+                }
 
-    upper_left_corner = drawing_settings.option["chars"]['upper_left_corner']
-    upper_right_corner = drawing_settings.option["chars"]['upper_right_corner']
-    lower_right_corner = drawing_settings.option["chars"]['lower_right_corner']
-    lower_left_corner = drawing_settings.option["chars"]['lower_left_corner']
-    horizontal_line = drawing_settings.option["chars"]['horizontal_line']
-    vertical_line = drawing_settings.option["chars"]['vertical_line']
-    left_opener = drawing_settings.option["chars"]['left_opener']
-    right_opener = drawing_settings.option["chars"]['right_opener']
-    border_color = drawing_settings.option[drawing_settings.render]['border_color']
-    text_color = drawing_settings.option[drawing_settings.render]['text_color']
-    info_color = drawing_settings.option[drawing_settings.render]['info_color']
-    end_color = drawing_settings.option[drawing_settings.render]['end_color']
-
-    table = ''
-
-    if drawing_settings.render == 'ansi':
-        border_color = '\033' + border_color
-        text_color = '\033' + text_color
-        info_color = '\033' + info_color
-        end_color = '\033' + end_color
-    elif drawing_settings.render == 'html':
-        border_color = '<span style="color:' + border_color + '">'
-        text_color = '<span style="color:' + text_color + '">'
-        info_color = '<span style="color:' + info_color + '">'
-        end_color = '</span>'
-    else:
-        raise Exception("unsupported render type")
-
-
-    start = float(flyby_json["settings"]['start_epoch'])
-    end = float(flyby_json["settings"]['end_epoch'])
-    min_degree = flyby_json["settings"]['min_degree']
-    hours = int((end - start) / 3600)
-    name = f"{left_opener} FLYBY INFO (min {min_degree}° altitude, {hours} hours ahead, showing first {entries_amount}, UTC {utils.get_utc_offset()}) {right_opener}"
-    half_len = int(len(name) / 2)
-    left_side = int(width / 2) - half_len
-    table += str(
-        " " * globals.PADDING + border_color + upper_left_corner + horizontal_line * left_side + name + horizontal_line * (
-                width - (left_side + len(name))) + upper_right_corner + end_color + " " * globals.PADDING + '\n')
+    _rows = {}
 
     entry = 0
-
-    spaces = [6, 15, 12, 12, 2, 22, 10, 5, 2, 22, 10, 5, 2, 22, 10, 5]
-
-    text_buffer = utils.add_col(" NO:", spaces[0]) + \
-                  utils.add_col("SATELLITE:", spaces[1]) + \
-                  utils.add_col("MAX ALT:", spaces[2]) + \
-                  utils.add_col("DURATION:", spaces[3]) + \
-                  utils.add_col("|", spaces[4]) + \
-                  utils.add_col("RISE:", spaces[5]) + \
-                  utils.add_col("AZIMUTH:", spaces[6]) + \
-                  utils.add_col("DIR:", spaces[7]) + \
-                  utils.add_col("|", spaces[8]) + \
-                  utils.add_col("CULMINATE:", spaces[9]) + \
-                  utils.add_col("AZIMUTH:", spaces[10]) + \
-                  utils.add_col("DIR:", spaces[11]) + \
-                  utils.add_col("|", spaces[12]) + \
-                  utils.add_col("SET:", spaces[13]) + \
-                  utils.add_col("AZIMUTH:", spaces[14]) + \
-                  utils.add_col("DIR:", spaces[15])
-
-    text_buffer += ' ' * (width - len(text_buffer))
-
-    table += str(" " * globals.PADDING + border_color + vertical_line + info_color + text_buffer + end_color + border_color + vertical_line + " " * globals.PADDING + '\n')
-
     for key in flyby_json["events"]:
         entry += 1
         if entry <= entries_amount:
@@ -139,40 +85,29 @@ def draw_box(flyby_json, entries_amount, drawing_settings, width, padding):
             culminate_time = utils.utc_to_lc(flyby_json["events"][key]["culminate"]['time'])
             set_time = utils.utc_to_lc(flyby_json["events"][key]["set"]['time'])
 
-            text_buffer = utils.add_col(f" {str(entry).zfill(2)}.", spaces[0]) + \
-                          utils.add_col(flyby_json["events"][key]["name"], spaces[1]) + \
-                          utils.add_col(str(round(float(flyby_json["events"][key]["culminate"]['altitude']), 2)) + "°",
-                                        spaces[2]) + \
-                          utils.add_col(utils.min_sec(float(flyby_json["events"][key]["duration"])), spaces[3]) + \
-                          utils.add_col("|", spaces[4]) + \
-                          utils.add_col(rise_time, spaces[5]) + \
-                          utils.add_col(utils.deg(flyby_json["events"][key]["rise"]['azimuth']), spaces[6]) + \
-                          utils.add_col(flyby_json["events"][key]["rise"]['direction'], spaces[7]) + \
-                          utils.add_col("|", spaces[8]) + \
-                          utils.add_col(culminate_time, spaces[9]) + \
-                          utils.add_col(utils.deg(flyby_json["events"][key]["culminate"]['azimuth']), spaces[10]) + \
-                          utils.add_col(flyby_json["events"][key]["culminate"]['direction'], spaces[11]) + \
-                          utils.add_col("|", spaces[12]) + \
-                          utils.add_col(set_time, spaces[13]) + \
-                          utils.add_col(utils.deg(flyby_json["events"][key]["set"]['azimuth']), spaces[14]) + \
-                          utils.add_col(flyby_json["events"][key]["set"]['direction'], spaces[15])
-
-            text_buffer += ' ' * (width - len(text_buffer))
-
-            table += " " * globals.PADDING + border_color + vertical_line + text_color + text_buffer + end_color + border_color + vertical_line + " " * globals.PADDING + '\n'
-
-    for x in range(entries_amount - entry):
-        entry += 1
-        table += " " * globals.PADDING + border_color + vertical_line + text_color + f" {str(entry).zfill(2)}. " + ' ' * (width - 5) + border_color + vertical_line + " " * globals.PADDING + '\n'
-
-    table += " " * globals.PADDING + lower_left_corner + horizontal_line * width + lower_right_corner + " " * globals.PADDING + '\n'
+            _rows[entry] = [f" {str(entry).zfill(2)}.",
+                            str(flyby_json["events"][key]["name"]),
+                            str(round(float(flyby_json["events"][key]["culminate"]['altitude']), 2)) + "°",
+                            str(utils.min_sec(float(flyby_json["events"][key]["duration"]))),
+                            "|",
+                            str(rise_time),
+                            str(utils.deg(flyby_json["events"][key]["rise"]['azimuth'])),
+                            str(flyby_json["events"][key]["rise"]['direction']),
+                            "|",
+                            str(culminate_time),
+                            str(utils.deg(flyby_json["events"][key]["culminate"]['azimuth'])),
+                            str(flyby_json["events"][key]["culminate"]['direction']),
+                            "|",
+                            str(set_time),
+                            str(utils.deg(flyby_json["events"][key]["set"]['azimuth'])),
+                            str(flyby_json["events"][key]["set"]['direction'])]
 
     height = entries_amount + 4
 
-    if drawing_settings.render == 'ansi':
-        return table, height
-    elif drawing_settings.render == 'html':
-        table = "<pre>" + table + "</pre>"
-        return table, height
-    else:
-        raise Exception("unsupported render type")
+    start = float(flyby_json["settings"]['start_epoch'])
+    end = float(flyby_json["settings"]['end_epoch'])
+    min_degree = flyby_json["settings"]['min_degree']
+    hours = int((end - start) / 3600)
+    name = f"FLYBY INFO (min {min_degree}° altitude, {hours} hours ahead, showing first {entries_amount}, UTC {utils.get_utc_offset()})"
+    table = utils.Table(name, width, entries_amount, padding, _columns, _rows, drawing_settings)
+    return table.draw(), height

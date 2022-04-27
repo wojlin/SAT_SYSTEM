@@ -17,9 +17,9 @@ def draw_box(drawing_settings, width, padding):
     if json.loads(utils.read_file('config/setup.json'))["api_settings"]['use_api'] is True:
         target = f"http://{globals.API_HOST}:{globals.API_PORT}"
         if drawing_settings.render == 'ansi':
-            server = f"SERVER: \u001b]8;;{target}\u001b\\{target}\u001b]8;;\u001b\\"
+            server = f"API: \u001b]8;;{target}\u001b\\{target}\u001b]8;;\u001b\\"
         elif drawing_settings.render == 'html':
-            server = f"SERVER: {target}"
+            server = f"API: {target}"
         else:
             raise Exception(f"unsupported render type: {drawing_settings.render}")
     else:

@@ -27,6 +27,7 @@ PATH = os.path.abspath('')
 PADDING = int(json.loads(utils.read_file('config/setup.json'))["padding"])
 WIDTH = os.get_terminal_size().columns
 HEIGHT = 45
+BOARDS = json.loads(utils.read_file('config/setup.json'))["console_update"]
 API_HOST = json.loads(utils.read_file('config/setup.json'))["api_settings"]["host"]
 API_PORT = json.loads(utils.read_file('config/setup.json'))["api_settings"]["port"]
 ROTATOR_HOST = json.loads(utils.read_file('config/setup.json'))["decode_settings"]["rotator_host"]

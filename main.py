@@ -23,7 +23,9 @@ threads = []
 start_date = datetime.now()
 
 
-def draw_board(table_name, drawing_settings, first_time, add_height):
+def draw_board(table_name, drawing_settings, vertical_offset):
+    print('\033[H', end='', flush=True)
+    print(f'\033[{vertical_offset};0H', end='', flush=True)
     if table_name == 'map':
         sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
         sats = tle_manager.read_tle(sat_file)
@@ -31,12 +33,7 @@ def draw_board(table_name, drawing_settings, first_time, add_height):
                                              drawing_settings=drawing_settings,
                                              width=globals.WIDTH,
                                              padding=globals.PADDING)
-        if not first_time:
-            for i in range(height + add_height):
-                sys.stdout.write("\033[F\033[K")
-        os.system('clear')
-        sys.stdout.write(table)
-        sys.stdout.write('\n')
+
     elif table_name == 'flyby':
         sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
         sats = tle_manager.read_tle(sat_file)
@@ -51,11 +48,6 @@ def draw_board(table_name, drawing_settings, first_time, add_height):
                                                drawing_settings=drawing_settings,
                                                width=globals.WIDTH,
                                                padding=globals.PADDING)
-        if not first_time:
-            for i in range(height + add_height):
-                sys.stdout.write("\033[F\033[K")
-        sys.stdout.write(table)
-        sys.stdout.write('\n')
     elif table_name == 'info':
         sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
         sats = tle_manager.read_tle(sat_file)
@@ -63,24 +55,18 @@ def draw_board(table_name, drawing_settings, first_time, add_height):
                                               drawing_settings=drawing_settings,
                                               width=globals.WIDTH,
                                               padding=globals.PADDING)
-        if not first_time:
-            for i in range(height + add_height):
-                sys.stdout.write("\033[F\033[K")
-        sys.stdout.write(table)
-        sys.stdout.write('\n')
+
     elif table_name == 'status':
-        height = 1
-        for i in range(height + add_height):
-            sys.stdout.write("\033[F\033[K")
 
         table, height = status_manager.draw_box(drawing_settings=drawing_settings,
                                                 width=globals.WIDTH,
                                                 padding=globals.PADDING)
 
-        sys.stdout.write(str(table + '\n'))
-
     else:
         raise Exception("module does not exist")
+
+    sys.stdout.write(table)
+
     return height
 
 
@@ -94,46 +80,37 @@ def manage_tle():
         tle_update_manager_thread.start()
 
 
-def manage_box_drawing(drawing_settings):
-    heights = [['map', draw_board('map', drawing_settings, first_time=True, add_height=0)],
-               ['flyby', draw_board('flyby', drawing_settings, first_time=True, add_height=0)],
-               ['info', draw_board('info', drawing_settings, first_time=True, add_height=0)],
-               ['status', draw_board('status', drawing_settings, first_time=True, add_height=0)]]
+def draw_boards(drawing_settings):
+    os.system('clear')
+    schedule = {key: {"offset": 0, "timeout": globals.BOARDS[key]} for key in globals.BOARDS}
+    heights = [0,]
+    for key, val in globals.BOARDS.items():
+        height = draw_board(key, drawing_settings=drawing_settings, vertical_offset=heights[-1])
+        height_sum = heights[-1] + height + 2
+        schedule[key]["offset"] = heights[-1]
+        heights.append(height_sum)
+    return schedule
 
+
+def manage_box_drawing(drawing_settings):
     timeouts_load = json.loads(utils.read_file('config/setup.json'))["console_update"]
-    timeouts = json.loads(utils.read_file('config/setup.json'))["console_update"]
+    timeouts = dict(timeouts_load).copy()
     last_width = os.get_terminal_size().columns
+
+    schedule = draw_boards(drawing_settings)
+    tick = float(json.loads(utils.read_file('config/setup.json'))["tick_speed"])
     while True:
-        time.sleep(0.1)
+        time.sleep(tick)
         globals.WIDTH = os.get_terminal_size().columns
 
         if last_width != globals.WIDTH:
-            for key in timeouts:
-                index = 0
-                add_height = 0
-                for i in range(len(heights)):
-                    if heights[i][0] == key:
-                        index = i
-                for i in range(index + 1, len(heights)):
-                    add_height += heights[i][1]
-                draw_board(key, first_time=False, add_height=add_height, drawing_settings=drawing_settings)
-                for i in range(index + 1, len(heights)):
-                    draw_board(heights[i][0], first_time=True, add_height=0, drawing_settings=drawing_settings)
-            last_width = globals.WIDTH
+            schedule = draw_boards(drawing_settings)
+            last_width = os.get_terminal_size().columns
 
         for key in timeouts:
-            timeouts[key] = timeouts[key] - 0.1
+            timeouts[key] = timeouts[key] - tick
             if timeouts[key] <= 0:
-                index = 0
-                add_height = 0
-                for i in range(len(heights)):
-                    if heights[i][0] == key:
-                        index = i
-                for i in range(index + 1, len(heights)):
-                    add_height += heights[i][1]
-                draw_board(key, first_time=False, add_height=add_height, drawing_settings=drawing_settings)
-                for i in range(index + 1, len(heights)):
-                    draw_board(heights[i][0], first_time=True, add_height=0, drawing_settings=drawing_settings)
+                draw_board(key, drawing_settings=drawing_settings, vertical_offset=schedule[key]['offset'])
                 timeouts[key] = timeouts_load[key]
 
 

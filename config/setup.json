@@ -1,5 +1,6 @@
 {
   "write_log": true,
+  "tick_speed": 0.5,
   "padding": 2,
   "ground_station": {
     "lat": 54.408010,

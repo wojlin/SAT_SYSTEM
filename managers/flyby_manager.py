@@ -102,7 +102,7 @@ def draw_box(flyby_json, entries_amount, drawing_settings, width, padding):
                             str(utils.deg(flyby_json["events"][key]["set"]['azimuth'])),
                             str(flyby_json["events"][key]["set"]['direction'])]
 
-    height = entries_amount + 4
+    height = entries_amount + 2
 
     start = float(flyby_json["settings"]['start_epoch'])
     end = float(flyby_json["settings"]['end_epoch'])

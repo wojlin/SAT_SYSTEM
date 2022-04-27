@@ -26,12 +26,17 @@ start_date = datetime.now()
 def draw_board(table_name, drawing_settings, vertical_offset):
     print('\033[H', end='', flush=True)
     print(f'\033[{vertical_offset};0H', end='', flush=True)
+    width = globals.WIDTH
+    max_height = os.get_terminal_size().lines
+
+    if max_height / width < 0.35:
+        width = int(max_height/0.4)
     if table_name == 'map':
         sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
         sats = tle_manager.read_tle(sat_file)
         table, height = map_manager.draw_box(satellites=sats,
                                              drawing_settings=drawing_settings,
-                                             width=globals.WIDTH,
+                                             width=width,
                                              padding=globals.PADDING)
 
     elif table_name == 'flyby':
@@ -46,20 +51,20 @@ def draw_board(table_name, drawing_settings, vertical_offset):
                                                               datetime.utcnow() + timedelta(hours=hours), angle)
         table, height = flyby_manager.draw_box(filtered_list, amount,
                                                drawing_settings=drawing_settings,
-                                               width=globals.WIDTH,
+                                               width=width,
                                                padding=globals.PADDING)
     elif table_name == 'info':
         sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
         sats = tle_manager.read_tle(sat_file)
         table, height = info_manager.draw_box(sats,
                                               drawing_settings=drawing_settings,
-                                              width=globals.WIDTH,
+                                              width=width,
                                               padding=globals.PADDING)
 
     elif table_name == 'status':
 
         table, height = status_manager.draw_box(drawing_settings=drawing_settings,
-                                                width=globals.WIDTH,
+                                                width=width,
                                                 padding=globals.PADDING)
 
     else:
@@ -81,14 +86,17 @@ def manage_tle():
 
 def draw_boards(drawing_settings):
     os.system('clear')
-    schedule = {key: {"offset": 0, "timeout": globals.BOARDS[key]} for key in globals.BOARDS}
-    heights = [0,]
-    for key, val in globals.BOARDS.items():
-        height = draw_board(key, drawing_settings=drawing_settings, vertical_offset=heights[-1])
-        height_sum = heights[-1] + height + 2
-        schedule[key]["offset"] = heights[-1]
-        heights.append(height_sum)
-    return schedule
+    if os.get_terminal_size().columns < 100:
+        print("the terminal must be at least 50 columns long to be able to draw the contents. the program will run in the background anyway")
+    else:
+        schedule = {key: {"offset": 0, "timeout": globals.BOARDS[key]} for key in globals.BOARDS}
+        heights = [0,]
+        for key, val in globals.BOARDS.items():
+            height = draw_board(key, drawing_settings=drawing_settings, vertical_offset=heights[-1])
+            height_sum = heights[-1] + height + 2
+            schedule[key]["offset"] = heights[-1]
+            heights.append(height_sum)
+        return schedule
 
 
 def manage_box_drawing(drawing_settings):
@@ -109,8 +117,11 @@ def manage_box_drawing(drawing_settings):
         for key in timeouts:
             timeouts[key] = timeouts[key] - tick
             if timeouts[key] <= 0:
-                draw_board(key, drawing_settings=drawing_settings, vertical_offset=schedule[key]['offset'])
-                timeouts[key] = timeouts_load[key]
+                if os.get_terminal_size().columns > 100:
+                    draw_board(key, drawing_settings=drawing_settings, vertical_offset=schedule[key]['offset'])
+                    timeouts[key] = timeouts_load[key]
+                else:
+                    draw_boards(drawing_settings)
 
 
 def manage_decode():

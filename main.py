@@ -66,7 +66,6 @@ def draw_board(table_name, drawing_settings, vertical_offset):
         raise Exception("module does not exist")
 
     sys.stdout.write(table)
-
     return height
 
 

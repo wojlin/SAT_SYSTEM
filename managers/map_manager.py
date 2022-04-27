@@ -309,7 +309,14 @@ def draw_box(satellites: list, drawing_settings: globals.options, width: int, pa
         raw_map = l_raw_map
 
     for line in raw_map:
+
+        for i in range(1, len(line)):
+            if line[i-1].left_side == line[i].left_side:
+                line[i-1].right_side = ''
+                line[i].left_side = ''
+
         joined_raw_map = ''.join([point.merged() for point in line])
+
         table += str(
             " " * globals.PADDING + border_color + vertical_line + end_color + joined_raw_map + border_color + vertical_line + end_color + " " * globals.PADDING + "\n")
     table += " " * globals.PADDING + str(border_color) + str(lower_left_corner) + str(horizontal_line * width) + str(

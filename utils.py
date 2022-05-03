@@ -135,18 +135,20 @@ class Table:
         lines = self.format_table()
 
         amount = self.height + 1
+        head = True
         for row in lines:
+
             total_len = sum([len(line) for line in row])
             left_width = self.width - total_len
             if amount > 0:
                 if left_width > 0:
-                    table += self.fill_table(self.extend_table(left_width, row), heading=True)
+                    table += self.fill_table(self.extend_table(left_width, row), heading=head)
                 else:
                     new_row = self.shrink_row(row)
                     total_len = sum([len(line) for line in new_row])
                     new_left_width = self.width - total_len
-                    table += self.fill_table(self.extend_table(new_left_width, new_row), heading=True)
-
+                    table += self.fill_table(self.extend_table(new_left_width, new_row), heading=head)
+            head = False
             amount -= 1
 
         table += self.end_table()

@@ -7,8 +7,6 @@ import json
 def draw_box(drawing_settings, width, padding):
     remain = width - 2 - (padding * 2)
 
-
-
     if json.loads(utils.read_file('config/setup.json'))["decode_settings"]['use_rotator'] is True:
         radio = f"ROTATOR: ⟳ {str(globals.ROTATOR_AZIMUTH).zfill(2)}°  ∠ {str(globals.ROTATOR_ELEVATION).zfill(2)}°".ljust(40)
     else:
@@ -36,9 +34,9 @@ def draw_box(drawing_settings, width, padding):
         text_buffer = (' ' * padding) + last_action + radio + server
 
     if drawing_settings.render == 'ansi':
-        return text_buffer, 1
+        return text_buffer, 3
     elif drawing_settings.render == 'html':
         table = "<pre>" + text_buffer + "</pre>"
-        return table, 1
+        return table, 3
     else:
         raise Exception("unsupported render type")

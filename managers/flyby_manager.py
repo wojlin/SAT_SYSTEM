@@ -110,4 +110,4 @@ def draw_box(flyby_json, entries_amount, drawing_settings, width, padding):
     hours = int((end - start) / 3600)
     name = f"FLYBY INFO (min {min_degree}° altitude, {hours} hours ahead, showing first {entries_amount}, UTC {utils.get_utc_offset()})"
     table = utils.Table(name, width, entries_amount, padding, _columns, _rows, drawing_settings)
-    return table.draw(), height
+    return table.draw(), height + 2

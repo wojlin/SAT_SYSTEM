@@ -16,6 +16,7 @@ def read_tle(sat_json):
                               sat_json[key]["line2"],
                               sat_json[key]["freq"],
                               sat_json[key]["type"]))
+    sats.sort(key=lambda x: x.get_json()["name"])
     return sats
 
 

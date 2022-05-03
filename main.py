@@ -17,7 +17,8 @@ from managers import info_manager, \
     logging_manager, \
     api_manager, \
     status_manager, \
-    rotator_manager
+    rotator_manager,\
+    radar_manager
 
 threads = []
 start_date = datetime.now()
@@ -25,7 +26,11 @@ start_date = datetime.now()
 
 def draw_board(table_name, drawing_settings, vertical_offset):
     print('\033[H', end='', flush=True)
+    #print(vertical_offset)
     print(f'\033[{vertical_offset};0H', end='', flush=True)
+
+    #time.sleep(1)
+    term_width = globals.WIDTH
     width = globals.WIDTH
     max_height = os.get_terminal_size().lines
 
@@ -53,6 +58,18 @@ def draw_board(table_name, drawing_settings, vertical_offset):
                                                drawing_settings=drawing_settings,
                                                width=width,
                                                padding=globals.PADDING)
+    elif table_name == 'radar':
+        if term_width - width > 40:
+            sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
+            sats = tle_manager.read_tle(sat_file)
+            table, height = radar_manager.draw_box(sats=sats,
+                                                   padding=(width+5, globals.PADDING),
+                                                   width=term_width - width - 20,
+                                                   drawing_settings=drawing_settings)
+        else:
+            table = ''
+            height = 0
+
     elif table_name == 'info':
         sat_file = ast.literal_eval(utils.read_file('config/tle.json'))
         sats = tle_manager.read_tle(sat_file)
@@ -90,10 +107,10 @@ def draw_boards(drawing_settings):
         print("the terminal must be at least 50 columns long to be able to draw the contents. the program will run in the background anyway")
     else:
         schedule = {key: {"offset": 0, "timeout": globals.BOARDS[key]} for key in globals.BOARDS}
-        heights = [0,]
+        heights = [globals.PADDING,]
         for key, val in globals.BOARDS.items():
             height = draw_board(key, drawing_settings=drawing_settings, vertical_offset=heights[-1])
-            height_sum = heights[-1] + height + 2
+            height_sum = heights[-1] + height
             schedule[key]["offset"] = heights[-1]
             heights.append(height_sum)
         return schedule

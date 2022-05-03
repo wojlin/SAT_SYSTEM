@@ -322,7 +322,7 @@ def draw_box(satellites: list, drawing_settings: globals.options, width: int, pa
     table += " " * globals.PADDING + str(border_color) + str(lower_left_corner) + str(horizontal_line * width) + str(
         lower_right_corner + end_color + " " * globals.PADDING + '\n')
 
-    map_height = height + 2
+    map_height = height + 3
 
     if drawing_settings.render == 'ansi':
         return table, map_height

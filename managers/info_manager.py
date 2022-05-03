@@ -43,6 +43,6 @@ def draw_box(satellites, drawing_settings, width, padding):
 
         i += 1
 
-    height = i + 2
+    height = i + 4
     table = utils.Table("SATELLITE INFO", width, len(satellites), padding, _columns, _rows, drawing_settings)
     return table.draw(), height

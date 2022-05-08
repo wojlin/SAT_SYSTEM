@@ -327,7 +327,7 @@ def draw_box(satellites: list, drawing_settings: globals.options, width: int, pa
     if drawing_settings.render == 'ansi':
         return table, map_height
     elif drawing_settings.render == 'html':
-        table = "<pre>" + table + "</pre>"
+        table = "<pre id='map_content' >" + table + "</pre>"
         return table, map_height
     else:
         raise Exception("unsupported render type")

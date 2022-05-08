@@ -15,10 +15,10 @@ from managers import info_manager, \
     tle_manager, \
     decode_manager, \
     logging_manager, \
-    api_manager, \
     status_manager, \
     rotator_manager,\
-    radar_manager
+    radar_manager,\
+    api_manager
 
 threads = []
 start_date = datetime.now()
@@ -123,7 +123,12 @@ def manage_box_drawing(drawing_settings):
 
     schedule = draw_boards(drawing_settings)
     tick = float(json.loads(utils.read_file('config/setup.json'))["tick_speed"])
+
+    draw_count = 0
+    redraw_amount = int(json.loads(utils.read_file('config/setup.json'))["redraw_map_amount"])
+
     while True:
+        #input()
         time.sleep(tick)
         globals.WIDTH = os.get_terminal_size().columns
 
@@ -139,6 +144,12 @@ def manage_box_drawing(drawing_settings):
                     timeouts[key] = timeouts_load[key]
                 else:
                     draw_boards(drawing_settings)
+
+                draw_count += 1
+                if draw_count >= redraw_amount:
+                    schedule = draw_boards(drawing_settings)
+                    last_width = os.get_terminal_size().columns
+                    draw_count = 0
 
 
 def manage_decode():

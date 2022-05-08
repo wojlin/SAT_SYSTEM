@@ -1,6 +1,7 @@
 import datetime
 import math
 import json
+import time
 
 from managers import flyby_manager
 import satellites
@@ -29,6 +30,32 @@ class PolarPoint:
     def draw(self):
         x, y = self.calculate()
         table = f"\033[{y};{x}H{self.name}"
+        return table
+
+
+class Circle:
+    def __init__(self, circle_radius: int, rescale: float, padding: tuple, points_amount: int, color: str, char: str):
+        self.radius = circle_radius
+        self.padding_x = padding[0]
+        self.padding_y = padding[1]
+        self.points_amount = points_amount
+        self.color = color
+        self.char = char
+        self.rescale = rescale
+
+    def draw(self):
+        table = ''
+        pi = math.pi
+        y_rescale = 2.2
+
+        x = [int((math.sin((x / self.points_amount) * 2 * pi) * (self.radius * self.rescale)) + self.radius + self.padding_x) for x in
+             range(self.points_amount)]
+        y = [int(((math.cos(
+            (y / self.points_amount) * 2 * pi) * (self.radius * self.rescale)) + self.radius) / y_rescale) + self.padding_y for y in
+             range(self.points_amount)]
+        for i in range(self.points_amount):
+            table += f"\033[{y[i]};{x[i]}H{self.color}{self.char}"
+
         return table
 
 
@@ -83,10 +110,8 @@ def draw_box(sats: list[satellites], padding: tuple, width: int, drawing_setting
 
     y_rescale = 2.2
     radar_width = width - 10
-    radar_height = int(radar_width/y_rescale)
+    radar_height = int(radar_width / y_rescale)
     radius = math.floor(radar_width / 2)
-    char = '.'
-    pi = math.pi
     points = int(radar_width * 1.5)
     x_padding = padding[0]
     y_padding = padding[1]
@@ -94,8 +119,7 @@ def draw_box(sats: list[satellites], padding: tuple, width: int, drawing_setting
     radar_y_padding = y_padding + 5
     table_y_padding = 5
 
-    total_height = (radar_y_padding-y_padding) + radar_height + table_y_padding + len(sats) + 2
-
+    total_height = (radar_y_padding - y_padding) + radar_height + table_y_padding + len(sats) + 2
 
     table = ''
 
@@ -105,18 +129,16 @@ def draw_box(sats: list[satellites], padding: tuple, width: int, drawing_setting
     table += f"\033[{y_padding};{x_padding}H" + str(
         border_color + upper_left_corner + str(horizontal_line * left_side) + str(name) + str(
             horizontal_line * (width - (
-                        left_side + len(name)))) + upper_right_corner + end_color)
+                    left_side + len(name)))) + upper_right_corner + end_color)
 
     for i in range(1, total_height):
         table += f"\033[{y_padding + i};{x_padding}H{border_color}{vertical_line}{radar_color}{' ' * (width)}{border_color}{vertical_line}{end_color}"
 
     table += f"\033[{y_padding + total_height};{x_padding}H{border_color}{lower_left_corner}{horizontal_line * width}{lower_right_corner}{end_color}"
 
-    x = [int((math.sin((x / points) * 2 * pi) * radius) + radius + radar_x_padding) for x in range(points)]
-    y = [int(((math.cos((y / points) * 2 * pi) * radius) + radius) / y_rescale) + radar_y_padding for y in
-         range(points)]
-    for i in range(points):
-        table += f"\033[{y[i]};{x[i]}H{radar_color}{char}"
+    table += Circle(radius, 1, (radar_x_padding, radar_y_padding), points, radar_color, '.').draw()
+    table += Circle(radius, 0.70, (radar_x_padding, radar_y_padding), int(points/2), radar_color, '.').draw()
+    table += Circle(radius, 0.35, (radar_x_padding, radar_y_padding), int(points/3), radar_color, '.').draw()
 
     table += f"\033[{radar_y_padding - 1};{radius + radar_x_padding}H0°"
     table += f"\033[{int(radius / y_rescale) + radar_y_padding};{radar_width + radar_x_padding}H90°"
@@ -133,17 +155,16 @@ def draw_box(sats: list[satellites], padding: tuple, width: int, drawing_setting
     table += f"\033[{int(radius / y_rescale) + radar_y_padding + 1};{int(radius + (radius - radius * 0.65) + radar_x_padding + 1)}H60°"
     table += f"\033[{int(radius / y_rescale) + radar_y_padding + 1};{int(radius + (radius - radius * 0.3) + radar_x_padding + 1)}H30°"
 
-
     colors = sat_colors
     current_color = 0
 
     sats_colors = {}
 
-
     l_name = f" legend "
     l_half_len = int(len(name) / 2)
     l_left_side = int(width / 2) - l_half_len
-    table += f"\033[{radar_y_padding + radar_height + table_y_padding - 1};{x_padding+2}H{radar_color}" + str(str('-' * l_left_side) + str(l_name) + str('-' * (width - 1 - (l_left_side + len(name)))))
+    table += f"\033[{radar_y_padding + radar_height + table_y_padding - 1};{x_padding + 2}H{radar_color}" + str(
+        str('-' * l_left_side) + str(l_name) + str('-' * (width - 1 - (l_left_side + len(name)))))
 
     for i in range(len(sats)):
         sat_json = sats[i].get_json()
@@ -157,11 +178,13 @@ def draw_box(sats: list[satellites], padding: tuple, width: int, drawing_setting
 
     table += f"\033[{40 + radar_y_padding};0H"
 
-    hours = int(int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["map_config"]['satellite_path_time_ahead'])/3600)
+    hours = int(int(json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["map_config"][
+                        'satellite_path_time_ahead']) / 3600)
     angle = int(
         json.loads(utils.read_file('config/setup.json'))["drawing_settings"]["flyby_config"]['minimal_angle'])
 
-    flyby_list = flyby_manager.get_flyby_raw_list(sats, datetime.datetime.utcnow(), datetime.datetime.utcnow() + datetime.timedelta(hours=hours),
+    flyby_list = flyby_manager.get_flyby_raw_list(sats, datetime.datetime.utcnow() - datetime.timedelta(minutes=10),
+                                                  datetime.datetime.utcnow() + datetime.timedelta(hours=hours),
                                                   angle)
 
     paths = {}
@@ -174,17 +197,19 @@ def draw_box(sats: list[satellites], padding: tuple, width: int, drawing_setting
             if sats[i].name == name:
                 path = sats[i].get_perspective_path(rise_time, set_time, 50)
                 paths[name] = path
-                break
 
     for sat, points in paths.items():
         for index, point in points.items():
-            p = PolarPoint(f"{sats_colors[sat]}•{end_color}", (point['azimuth'], point['altitude']), radar_width, (radar_x_padding, radar_y_padding))
+            p = PolarPoint(f"{sats_colors[sat]}•{end_color}", (point['azimuth'], point['altitude']), radar_width,
+                           (radar_x_padding, radar_y_padding))
             table += p.draw()
 
     for sat in sats:
         sat_info = sat.get_json()
         if sat_info['perspective']['altitude'] > 0:
-            p = PolarPoint(f"{satellite} {sat_info['name']}", (sat_info['perspective']['azimuth'], sat_info['perspective']['altitude']), radar_width, (radar_x_padding, radar_y_padding))
+            p = PolarPoint(f"{radar_color}{sats_colors[sat_info['name']]}{satellite} {sat_info['name']}",
+                           (sat_info['perspective']['azimuth'], sat_info['perspective']['altitude']), radar_width,
+                           (radar_x_padding, radar_y_padding))
             table += p.draw()
-
+    table += end_color
     return table, 0

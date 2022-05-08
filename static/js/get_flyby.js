@@ -12,9 +12,10 @@ function get_flyby() {
 	data["hours_ahead"] = parseInt(document.getElementById("hours_ahead").value);
 	data["minimal_angle"] = parseInt(document.getElementById("minimal_angle").value);
 	data["display_amount"] = parseInt(document.getElementById("display_amount").value);
+    data["display_amount"] = parseInt(document.getElementById("display_amount").value);
+    data["width"] = parseInt(document.getElementById("flyby_width").value);
 
 	const querystring = encodeQueryData(data);
-	console.log(querystring)
 	xhr.open("GET", 'api/get_flyby?' + querystring);
 
 	xhr.setRequestHeader("Accept", "application/json");
@@ -30,7 +31,7 @@ function get_flyby() {
 			}
 			setTimeout(function() {
 				get_flyby()
-			}, 10000);
+			}, 100000);
 		}
 	};
 

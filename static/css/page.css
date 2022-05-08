@@ -1,6 +1,6 @@
 @font-face {
-  font-family: SourceCodePro-Regular;
-  src: url(../fonts/SourceCodePro-Regular.ttf);
+  font-family: mono;
+  src: url(../fonts/mono.ttf);
 }
 
 body
@@ -9,8 +9,8 @@ body
     padding:0;
     color:white;
     background-color:black;
-    font-family: SourceCodePro-Regular;
-    overflow: hidden;
+    font-family: mono;
+    overflow-x: hidden;
 }
 
 h1{text-align:center;}
@@ -20,22 +20,11 @@ h1{text-align:center;}
     height:5vh;
 }
 
-#cols
-{
-    white-space: nowrap;
-    width:95%;
-    height:90vh;
-    margin:auto;
-}
 
-#left_col, #right_col
+#column
 {
-    display:inline-block;
-    width:50%;
-    top:0;
-    position:relative;
-    vertical-align:top;
-    height:100%;
+    width:80%;
+    margin: auto;
 }
 
 .box
@@ -54,25 +43,34 @@ h1{text-align:center;}
     width: 100%;
 }
 
-pre{width:100%;background:black;text-align:left;font-size:0.433vw;margin:auto;}
+pre{width:100%;background:black;text-align:left;font-size:0.7vw;margin:auto;}
+
+
+.break
+{
+    border-top: solid white 2px;
+    margin-top:5vh;
+    margin-bottom:5vh;
+}
+
 
 pre > span
 {
    display:inline-block;
-   width: 0.26vw;
+    font-family: mono;
    height:0.1px;
 }
 
 form
 {
-font-size:0.5vw;
+font-size:0.8vw;
 padding:10px;
 }
 
 .number_input
 {
     width:7ch;
-    font-size:0.5vw;
+    font-size:0.8vw;
 }
 
 .settings
@@ -93,15 +91,6 @@ padding:10px;
     background-color:white;
 }
 
-#flyby
-{
-    height:7vw;
-}
-
-#info
-{
-    height:5vw;
-}
 
 #images_box
 {
@@ -240,7 +229,7 @@ transition: transform .25s ease;
 
 #image_viewer
 {
-    position:absolute;
+    position:fixed;
     top:0;
     bottom:0;
     left:0;

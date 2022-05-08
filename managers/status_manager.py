@@ -23,10 +23,10 @@ def draw_box(drawing_settings, width, padding):
     else:
         server = "SERVER: disabled"
 
-    if width < 130:
+    if width < 120:
         last_action = utils.add_col(f"LAST ACTION: {globals.LAST_ACTION}", math.floor(remain))
         text_buffer = (' ' * padding) + last_action
-    elif width < 160:
+    elif width < 140:
         last_action = utils.add_col(f"LAST ACTION: {globals.LAST_ACTION}", math.floor(remain / 1.3))
         text_buffer = (' ' * padding) + last_action + radio
     else:

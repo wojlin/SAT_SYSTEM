@@ -2,6 +2,7 @@
   "write_log": true,
   "tick_speed": 0.5,
   "padding": 2,
+  "redraw_map_amount": 100,
   "ground_station": {
     "lat": 54.408010,
     "lon": 18.562690

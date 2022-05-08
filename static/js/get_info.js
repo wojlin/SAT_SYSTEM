@@ -1,7 +1,11 @@
 function get_info() {
 	let xhr = new XMLHttpRequest();
 
-	xhr.open("GET", 'api/get_info');
+	var data = {};
+    data["width"] = parseInt(document.getElementById("info_width").value);
+
+    const querystring = encodeQueryData(data);
+	xhr.open("GET", 'api/get_info?' + querystring);
 
 	xhr.setRequestHeader("Accept", "application/json");
 	xhr.setRequestHeader("Content-Type", "application/json");
@@ -13,6 +17,10 @@ function get_info() {
 				var text = xhr.responseText;
 				var map_box = document.getElementById('info_box')
 				map_box.innerHTML = text;
+
+				var size = calculate_size(data["map_width"]);
+				document.getElementById("SATELLITE INFO").style.fontSize = size;
+
 				setTimeout(function() {
 					get_info()
 				}, 1000);

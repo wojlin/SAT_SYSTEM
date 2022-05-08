@@ -1,3 +1,4 @@
+
 function encodeQueryData(data) {
 	const ret = [];
 	for (let d in data)
@@ -14,9 +15,9 @@ function get_map() {
 	data["draw_satellite_path"] = document.getElementById("draw_satellite_path").checked;
 	data["satellite_path_resolution"] = parseInt(document.getElementById("satellite_path_resolution").value);
 	data["satellite_path_time_ahead"] = parseInt(document.getElementById("satellite_path_time_ahead").value);
+	data["width"] = parseInt(document.getElementById("map_width").value);
 
 	const querystring = encodeQueryData(data);
-	console.log(querystring)
 	xhr.open("GET", 'api/get_map?' + querystring);
 
 	xhr.setRequestHeader("Accept", "application/json");
@@ -28,12 +29,18 @@ function get_map() {
 				var text = xhr.responseText;
 				var map_box = document.getElementById('map_box')
 				map_box.innerHTML = text;
+				var size = calculate_size(data["map_width"]);
+				document.getElementById("map_content").style.fontSize = size;
+
+
 				setTimeout(function() {
 					get_map();
 				}, 60000);
 			}
 		}
 	};
+
+
 
 	xhr.send();
 }

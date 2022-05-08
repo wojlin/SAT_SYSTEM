@@ -67,8 +67,10 @@ class Table:
         return self.fill_table(str(self.horizontal_line) * self.width, row_type='bottom')
 
     def fill_table(self, text: str, heading: bool = False, row_type: str = "content"):
-
-        padding = " " * self.padding
+        if self.drawing_settings.render == 'html':
+            padding = "<span>" + str(" " * self.padding) + "</span>"
+        else:
+            padding = " " * self.padding
         if row_type == "content":
             left = self.vertical_line
             right = self.vertical_line
@@ -83,7 +85,7 @@ class Table:
             color = self.border_color
         else:
             raise Exception(f"unsupported row type: {row_type}\nsupported types: ['content', 'top', 'bottom']")
-        line_start = str(padding + self.border_color + left + color)
+        line_start = str(padding + self.border_color + left + self.end_color + color)
         line_end = str(self.end_color + self.border_color + right + self.end_color + padding + '\n')
         return line_start + text + line_end
 
@@ -153,7 +155,13 @@ class Table:
 
         table += self.end_table()
 
-        return table
+        if self.drawing_settings.render == 'ansi':
+            return table
+        elif self.drawing_settings.render == 'html':
+            table = f"<pre id='{self.name}'>" + table + "</pre>"
+            return table
+        else:
+            raise Exception("unsupported render type")
 
     def __repr__(self):
         return self.draw()

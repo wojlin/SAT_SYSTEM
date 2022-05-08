@@ -25,7 +25,6 @@ log.disabled = True
 log.setLevel(logging.ERROR)
 logging.getLogger('werkzeug').disabled = True
 
-
 def secho(text, file=None, nl=None, err=None, color=None, **styles):
     pass
 
@@ -59,7 +58,7 @@ def get_map_box():
         else:
             options.option["map_config"][key] = options_keys[key]
     map_box = map_manager.draw_box(sats, options,
-                                   width=globals.WIDTH,
+                                   width=int(options.option["map_config"]['width']),
                                    padding=globals.PADDING)
     return str(map_box[0])
 
@@ -82,7 +81,7 @@ def get_flyby_box():
                                                           datetime.utcnow() + timedelta(hours=hours), angle)
     flyby_box = flyby_manager.draw_box(filtered_list, amount,
                                        drawing_settings=options,
-                                       width=globals.WIDTH,
+                                       width=int(options.option["flyby_config"]['width']),
                                        padding=globals.PADDING)
 
     return str(flyby_box[0])
@@ -91,9 +90,10 @@ def get_flyby_box():
 @app.route("/api/get_info", methods=["GET"])
 def get_info_box():
     options = globals.HTML_DRAWING_SETTINGS
+    options_keys = request.args
     info_box = info_manager.draw_box(sats,
                                      drawing_settings=options,
-                                     width=globals.WIDTH,
+                                     width=int(options_keys['width']),
                                      padding=globals.PADDING)
 
     return str(info_box[0])
@@ -102,8 +102,9 @@ def get_info_box():
 @app.route("/api/get_status", methods=["GET"])
 def get_status_box():
     options = globals.HTML_DRAWING_SETTINGS
+    options_keys = request.args
     status_box = status_manager.draw_box(drawing_settings=options,
-                                         width=globals.WIDTH,
+                                         width=int(options_keys['width']),
                                          padding=globals.PADDING)
     return str(status_box[0])
 
@@ -176,7 +177,3 @@ def start_api():
         app.run(globals.API_HOST, globals.API_PORT, False)
     except Exception as e:
         globals.LOGGER.error(e)
-
-
-if __name__ == "__main__":
-    app.run(globals.API_HOST, globals.API_PORT, False)
